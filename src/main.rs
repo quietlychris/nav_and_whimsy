@@ -30,9 +30,9 @@ fn main() {
     let mut mesh = create_mesh();
 
     // Creates robot at with initial conditions
-    let mut current = State::new(DoF::new(0.0,0.0,0.0),
-                                 DoF::new(0.0,0.0,0.0),
-                                 DoF::new(10.0,0.0,0.0),
+    let mut current = State::new(DoF::new(5.0,0.0,0.0),
+                                 DoF::new(5.0,0.0,0.0),
+                                 DoF::new(5.0,0.0,0.0),
                                  DoF::new(0.0,0.0,0.0),
                                  DoF::new(0.0,0.0,0.0));
 
@@ -58,9 +58,9 @@ fn main() {
     let mut time: f32 = 0.0;
 
     // Basic search, iterating through the mesh
-    for a in 1i32..(length as i32)
+    for a in 0i32..(length as i32)
     {
-        for b in 1i32..(length as i32)
+        for b in 0i32..(length as i32)
         {
             let mut desired = State::new(DoF::new((a as f32),0.0,0.0),
                                          DoF::new((b as f32),0.0,0.0),
@@ -82,10 +82,12 @@ fn main() {
                 current.update_pos_smd(desired,position_smd);
 
                 // Transforms current position into a mesh point
-                let position_as_point = current.as_mesh_point();
+                let position_as_point: Point = current.as_mesh_point();
+                println!("PaP: ({},{},{})",position_as_point.x,position_as_point.y,position_as_point.z);
                 // If that mesh point is in the search mesh...
                 if (position_as_point.x < length) && (position_as_point.x >= 0usize)
                     && (position_as_point.y < length) && (position_as_point.y >= 0usize)
+                        && (position_as_point.z < length) && (position_as_point.z >= 0usize)
                     {
                         // Sets that search mesh point to 'true'
                         mesh[position_as_point.x][position_as_point.y][position_as_point.z] = mesh[position_as_point.x][position_as_point.y][position_as_point.z].make_true();
@@ -101,7 +103,7 @@ fn main() {
 
                 // Increases total time
                 time = time + DT;
-                if time > 10000f32 {break;}
+                if time > 10f32 {break;}
             }
         }
     }
