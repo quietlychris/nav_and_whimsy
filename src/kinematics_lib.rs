@@ -114,39 +114,45 @@ impl State {
     }
 
     // Updates the State variable using a SMD controller
+    // TO_DO: Need to stabilize local accelerations and zero/zero positions
     pub fn update_pos_smd(&mut self, desired: State, smd: SMD) {
 
         let x_error = find_error(desired.xaxis.var,self.xaxis.var);
-        //let x_error = desired.xaxis.var - self.xaxis.var;
         let y_error = find_error(desired.yaxis.var,self.yaxis.var);
-        //let y_error = desired.yaxis.var - self.yaxis.var;
         let z_error = find_error(desired.zaxis.var,self.zaxis.var);
         let total_pos_error = (x_error.powf(2.0) + y_error.powf(2.0) + z_error.powf(2.0)).powf(0.5);
-        //println!("x_error is {}, y_error is {}, total is {}",x_error,y_error,total_pos_error);
-        let total_velocity = (self.xaxis.vard.powf(2.0) + self.yaxis.vard.powf(2.0)).powf(0.5) + self.zaxis.vard.powf(2.0);
-        //println!("x_veloc is {}, y_veloc is {}",self.xaxis.vard,self.yaxis.vard);
+        // println!("x_error is {}, y_error is {}, total is {}",x_error,y_error,total_pos_error);
+        let total_velocity = (self.xaxis.vard.powf(2.0) + self.yaxis.vard.powf(2.0) + self.zaxis.vard.powf(2.0)).powf(0.5);
+        // println!("x_veloc is {}, y_veloc is {}",self.xaxis.vard,self.yaxis.vard);
         let acceleration = (-smd.c/smd.m)*total_velocity + (smd.k/smd.m)*total_pos_error;
-        //println!("acceleration is {}",acceleration);
+        // println!("acceleration is {}",acceleration);
         self.xaxis.vardd = acceleration*self.yaw.var.to_radians().cos();
+        // if self.xaxis.vardd.is_nan() == true || self.xaxis.vardd.is_infinite() == true || self.xaxis.vardd.abs() > 20f32
+        //    {self.xaxis.vardd = 0f32 }
         self.xaxis.vard = self.xaxis.vard + self.xaxis.vardd*DT;
         self.xaxis.var = self.xaxis.var + self.xaxis.vard*DT;
 
         self.yaxis.vardd = acceleration*self.yaw.var.to_radians().sin();
-        //println!("yaw {}",self.yaw.var);
+        // if self.yaxis.vardd.is_nan() == true || self.yaxis.vardd.is_infinite() == true || self.yaxis.vardd.abs() > 20f32
+        //    {self.yaxis.vardd = 0f32 }
+        // println!("yaw {}",self.yaw.var);
         self.yaxis.vard = self.yaxis.vard + self.yaxis.vardd*DT;
         self.yaxis.var = self.yaxis.var + self.yaxis.vard*DT;
-        //println!("x-accel is {}, y accel is {}",self.xaxis.vardd,self.yaxis.vardd);
 
-        //TO_DO: Just broke this by adding a 'pitch variable' cmoran, 4/12/18
-        self.zaxis.vardd = acceleration*self.pitch.var.to_radians().cos();
+        self.zaxis.vardd = acceleration*self.pitch.var.to_radians().sin();
+        // if self.zaxis.vardd.is_nan() == true || self.zaxis.vardd.is_infinite() == true || self.zaxis.vardd.abs() > 20f32
+        //    {self.zaxis.vardd = 0f32 }
         self.zaxis.vard = self.zaxis.vard + self.zaxis.vardd*DT;
         self.zaxis.var = self.zaxis.var + self.zaxis.vard*DT;
+        // println!("x-accel is {}, y-accel is {}, z-accel is {}",self.xaxis.vardd,self.yaxis.vardd,self.zaxis.vardd);
+
     }
 
     // Calculates the desired yaw (in absolute, not relative) required to move
     // from one point to another
     pub fn calculate_yaw(&mut self, desired: State, quadrant: usize) -> f32 {
         let mut yaw = ((desired.yaxis.var - self.yaxis.var)/(desired.xaxis.var - self.xaxis.var)).atan().to_degrees();
+        if yaw.is_nan() == true {yaw = 1f32}
         let mut additive = 0f32;
         match quadrant {
             1 => additive = 0f32,
@@ -158,7 +164,7 @@ impl State {
             22 => self.yaxis.var = 270f32,
             33 => self.yaxis.var = 180f32,
             44 => self.yaxis.var = 0f32,
-            _ => println!("error grid_search_smd_lib::State::calculate_yaw function"),
+            _ => println!("error grid_search_smd_lib::State::calculate_yaw function, 'quadrant var returned 0'"),
         }
         //println!("yaw before additive: {}, with additive {}",self.yaxis.varaw,additive);
         yaw = yaw + additive;
@@ -166,12 +172,19 @@ impl State {
         yaw
     }
 
-    pub fn calculate_pitch(&mut self, desired: State) {
+    // TO_DO: Needs to be tested
+    pub fn calculate_pitch(&mut self, desired: State) -> f32 {
         let above = if (self.zaxis.var > desired.zaxis.var) {
             true
             }
         else {false};
-        println!("{}",above);
+        // println!("{}",above);
+        let dxy = (self.xaxis.var.powf(2.0) + desired.xaxis.var.powf(2.0)).powf(0.5);
+        let dz = desired.zaxis.var - self.zaxis.var;
+        let mut pitch = (dz/dxy).atan().to_degrees();
+        //if above == false {pitch = pitch*1f32}
+        if pitch.is_nan() == true {pitch = 0f32}
+        pitch
 
     }
 
@@ -199,6 +212,8 @@ impl DoF {
         let error = find_error(desired,self.var);
         //println!("desired.position.x = {}, error = {}",desired.position.x,error);
         self.vardd = (-smd.c/smd.m)*self.vard + (smd.k/smd.m)*error;
+        if self.vardd.is_nan() == true {self.vardd = 1f32}
+        if self.vardd > 1000f32 {self.vardd = 1f32}
         self.vard = self.vard + self.vardd*DT;
         self.var = self.var + self.vard*DT;
     }
@@ -252,10 +267,8 @@ pub fn find_error(a: f32, b: f32) -> f32 {
             else if a < b { (a - b) }
             else { 0f32 }
         }
-        else {
-            println!("hmm, either we're at t=0, or an unexpected condition has appeared (a | b == 0)");
-            0f32
-        }
+        else { 0.01f32}
+
 }
 
 
