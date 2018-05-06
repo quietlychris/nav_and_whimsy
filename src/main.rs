@@ -58,7 +58,7 @@ fn main() {
     // Remember, with too strong a spring and too small a mass, accelerations
     // may jump to high and lead to unstable behavior
     let mut position_smd = SMD::new(2.0,0.2,0.3);
-    let mut yaw_smd =current.print_state(desired); SMD::new(0.2,0.2,3.0);
+    let mut yaw_smd = SMD::new(0.2,0.2,3.0);
     let mut pitch_smd = SMD::new(1.0,0.2,1.0);
 
     // Writes current position to log
