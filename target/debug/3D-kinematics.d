@@ -1,1 +1,0 @@
-/home/chris/rust-projects/rse_simulation/nav_and_whimsy/target/debug/3D-kinematics: /home/chris/rust-projects/rse_simulation/nav_and_whimsy/src/kinematics_lib.rs /home/chris/rust-projects/rse_simulation/nav_and_whimsy/src/main.rs
