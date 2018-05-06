@@ -35,7 +35,7 @@ pub struct State {pub xaxis: DoF, pub yaxis: DoF, pub zaxis: DoF, pub yaw: DoF, 
 #[derive(Clone, Copy)]
 pub struct SMD {pub error: f32, m: f32, c: f32, k: f32} // spring-mass-damper
 
-// Point is the basic element of the virtual search grid, containing several axes
+// Point is the basic element of the virtual search grid, containing 3 axes
 #[derive(Clone,Copy)]
 pub struct Point {pub x: f32, pub y: f32, pub z: f32, pub yon: bool }
 
@@ -234,7 +234,6 @@ impl DoF {
     pub fn update_w_smd(&mut self, desired: f32, smd: SMD) {
 
         let error = find_error(desired,self.var);
-        //println!("desired.position.x = {}, error = {}",desired.position.x,error);
         self.vardd = (-smd.c/smd.m)*self.vard + (smd.k/smd.m)*error;
         if self.vardd.is_nan() == true {self.vardd = 1f32}
         if self.vardd > 1000f32 {self.vardd = 1f32}
@@ -263,52 +262,6 @@ pub fn random_num() -> f32{
 // Particularly useful for angular distances
 // find_error(desired, current)
 
-// 5/5/18 version
-/*pub fn find_error(a: f32, b: f32) -> f32 {
-
-        // Takes two arguments, then determines the difference between them
-        //
-        // This is pretty important for angular PID controllers, since
-        // transformations from 3 to 2 degrees shouldn't be seen as moving
-        // all the way around the unit circle
-
-        if a >= 0f32 && b >= 0f32 // CASE 1
-        {
-            //println!("find_error() CASE 1");
-            //if a > b { (a - b) }
-            //if a < b { (a - b) }
-            //else { 0f32 }
-            (a-b)
-        }
-        else if a <= 0f32 && b < 0f32 // CASE 2
-        {
-            //println!("find_error() CASE 2");
-            //if a > b { (a - b) }
-            //if a < b { (a - b) }
-            //else { 0f32 }
-            (a-b)
-        }
-        else if a >= 0f32 && b < 0f32 // CASE 3
-        {
-            //println!("find_error() CASE 3");
-            if a > b { (a - b) }
-            //if a < b { panic!("something's very wrong") }
-            else {panic!("find_error(), case 3")}
-            //else { 0f32 }
-        }
-        else if a < 0f32 && b >= 0f32 // CASE 4
-        {
-            //println!("find_error() CASE 4");
-            if a > b { panic!("something's very wrong")}
-            //if a < b { (a - b) }
-            else {(a-b)}
-            //else { 0f32 }
-        }
-        else {panic!("find_error() didn't return properly");}
-
-
-}*/
-
 pub fn find_error(a: f32, b: f32) -> f32 {
 
         // Takes two arguments, then determines the difference between them
@@ -335,13 +288,13 @@ pub fn find_error(a: f32, b: f32) -> f32 {
             else if a < b { panic!("something's very wrong"); }
             else { 0f32 }
         }
-        else if a < 0f32 && b > 0f32 // CASE 4
+        else //if a < 0f32 && b > 0f32 // CASE 4
         {
             if a > b { panic!("something's very wrong");}
             else if a < b { (a - b) }
-            else { 0f32 }
+            else { panic!("find_error() conditions not met!"); }
         }
-        else { 0.01f32}
+        //else { 0.01f32}
 
 }
 

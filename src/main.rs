@@ -4,6 +4,7 @@
 
 // Imports library module
 mod kinematics_lib;
+mod tests;
 
 // Pulls public functions and custom data types in from library
 use kinematics_lib::*;
