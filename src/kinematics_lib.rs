@@ -37,7 +37,7 @@ pub struct SMD {pub error: f32, m: f32, c: f32, k: f32} // spring-mass-damper
 
 // Point is the basic element of the virtual search grid, containing several axes
 #[derive(Clone,Copy)]
-pub struct Point {pub x: usize, pub y: usize, pub z: usize, pub yon: bool }
+pub struct Point {pub x: f32, pub y: f32, pub z: f32, pub yon: bool }
 
 
 impl State {
@@ -57,11 +57,16 @@ impl State {
     // Determines the 3D quadrant of the desired position, with the current
     // position as the origin
     // TO_DO: Convert to 3D
-    pub fn determine_quadrant(&self, desired: State) -> usize {
+    pub fn determine_quadrant(&mut self, desired: State) -> usize {
         // Only to be used for yaw DoF
 
         let mut quadrant = 0;
         let mut _return_key = 1;
+
+        // Error handling for having NaN values returned
+        if self.xaxis.var.is_nan() == true {self.xaxis.var = 0f32 }
+        if self.yaxis.var.is_nan() == true {self.yaxis.var = 0f32 }
+
         if (desired.xaxis.var > self.xaxis.var) && (desired.yaxis.var > self.yaxis.var) {
             quadrant = 1;
         }
@@ -95,6 +100,8 @@ impl State {
             quadrant = 44;
         }
 
+        // Prints low-res info about current and desired state
+        //current.print_state();
 
         // For debugging
         /*match quadrant {
@@ -120,9 +127,11 @@ impl State {
         let x_error = find_error(desired.xaxis.var,self.xaxis.var);
         let y_error = find_error(desired.yaxis.var,self.yaxis.var);
         let z_error = find_error(desired.zaxis.var,self.zaxis.var);
+        //println!("update_pos_smd: z_error is {}",z_error);
         let total_pos_error = (x_error.powf(2.0) + y_error.powf(2.0) + z_error.powf(2.0)).powf(0.5);
         // println!("x_error is {}, y_error is {}, total is {}",x_error,y_error,total_pos_error);
         let total_velocity = (self.xaxis.vard.powf(2.0) + self.yaxis.vard.powf(2.0) + self.zaxis.vard.powf(2.0)).powf(0.5);
+        //let total_velocity = (self.xaxis.vard.powf(2.0) + self.yaxis.vard.powf(2.0) ).powf(0.5);
         // println!("x_veloc is {}, y_veloc is {}",self.xaxis.vard,self.yaxis.vard);
         let acceleration = (-smd.c/smd.m)*total_velocity + (smd.k/smd.m)*total_pos_error;
         // println!("acceleration is {}",acceleration);
@@ -139,6 +148,9 @@ impl State {
         self.yaxis.vard = self.yaxis.vard + self.yaxis.vardd*DT;
         self.yaxis.var = self.yaxis.var + self.yaxis.vard*DT;
 
+
+        //if acceleration.abs() > 1000f32 {panic!("update_pos_smd: total accel too large")}
+        //println!("pitch in degrees: {} ",self.pitch.var);
         self.zaxis.vardd = acceleration*self.pitch.var.to_radians().sin();
         // if self.zaxis.vardd.is_nan() == true || self.zaxis.vardd.is_infinite() == true || self.zaxis.vardd.abs() > 20f32
         //    {self.zaxis.vardd = 0f32 }
@@ -164,7 +176,7 @@ impl State {
             22 => self.yaxis.var = 270f32,
             33 => self.yaxis.var = 180f32,
             44 => self.yaxis.var = 0f32,
-            _ => println!("error grid_search_smd_lib::State::calculate_yaw function, 'quadrant var returned 0'"),
+            _ => println!("error grid_search_smd_lib::State::calculate_yaw function, 'quadrant var returned {}'",quadrant),
         }
         //println!("yaw before additive: {}, with additive {}",self.yaxis.varaw,additive);
         yaw = yaw + additive;
@@ -174,24 +186,36 @@ impl State {
 
     // TO_DO: Needs to be tested
     pub fn calculate_pitch(&mut self, desired: State) -> f32 {
-        let above = if (self.zaxis.var > desired.zaxis.var) {
-            true
-            }
-        else {false};
-        // println!("{}",above);
-        let dxy = (self.xaxis.var.powf(2.0) + desired.xaxis.var.powf(2.0)).powf(0.5);
+        let above = if (self.zaxis.var > desired.zaxis.var) { true } else {false};
+        //let dxy = (self.xaxis.var.powf(2.0) + desired.xaxis.var.powf(2.0)).powf(0.5);
+        let dxy = (find_error(desired.xaxis.var,self.xaxis.var).powf(2.0) + find_error(desired.yaxis.var,self.yaxis.var).powf(2.0)).powf(0.5);
         let dz = desired.zaxis.var - self.zaxis.var;
+        //let dz = find_error(desired.zaxis.var,self.zaxis.var);
         let mut pitch = (dz/dxy).atan().to_degrees();
-        //if above == false {pitch = pitch*1f32}
-        if pitch.is_nan() == true {pitch = 0f32}
+        //let pitch = (desired.zaxis.var)
+        // TO_DO: uncomment pitch is nan when gains search is done
+        // if pitch.is_nan() == true { panic!("calculate_pitch: Pitch is NaN!");}
         pitch
 
     }
 
-    // Creates a search grid point based on the existing State
-    pub fn as_mesh_point(&self) -> Point {
-        Point {x: (self.xaxis.var.round() as usize), y: (self.yaxis.var.round() as usize),
-               z: (self.zaxis.var.round() as usize), yon: false }
+    // Prints low-res info about current and desired state
+    pub fn print_state(&self,desired: State) {
+        println!("current position: [{:.3},{:.3},{:.3}] desired position: [{},{},{}], pitch {:.2}",
+            self.xaxis.var,self.yaxis.var,self.zaxis.var,
+            desired.xaxis.var,desired.yaxis.var,desired.zaxis.var,
+            self.pitch.var);
+    }
+
+    pub fn print_state_detailed(&self) {
+
+        println!("  Acceleration  |   Velocity  |  Position ");
+        println!("X:      {:.3}   |     {:.3}   |   {:.3}",self.xaxis.vardd,self.xaxis.vard,self.xaxis.var);
+        println!("Y:      {:.3}   |    {:.3}   |   {:.3}",self.yaxis.vardd,self.yaxis.vard,self.yaxis.var);
+        println!("Z:    {:.3}   |   {:.3}   |   {:.3}",self.zaxis.vardd,self.zaxis.vard,self.zaxis.var);
+        if self.xaxis.vardd.is_nan() == true {panic!("x-acceleration is nan!")}
+        if self.yaxis.vardd.is_nan() == true {panic!("y-acceleration is nan!")}
+        if self.zaxis.vardd.is_nan() == true {panic!("z-acceleration is nan!")}
     }
 
 }
@@ -235,6 +259,56 @@ pub fn random_num() -> f32{
 // Determines the closest difference between two inputs
 // Particularly useful for angular distances
 // find_error(desired, current)
+// Determines the closest difference between two inputs
+// Particularly useful for angular distances
+// find_error(desired, current)
+
+// 5/5/18 version
+/*pub fn find_error(a: f32, b: f32) -> f32 {
+
+        // Takes two arguments, then determines the difference between them
+        //
+        // This is pretty important for angular PID controllers, since
+        // transformations from 3 to 2 degrees shouldn't be seen as moving
+        // all the way around the unit circle
+
+        if a >= 0f32 && b >= 0f32 // CASE 1
+        {
+            //println!("find_error() CASE 1");
+            //if a > b { (a - b) }
+            //if a < b { (a - b) }
+            //else { 0f32 }
+            (a-b)
+        }
+        else if a <= 0f32 && b < 0f32 // CASE 2
+        {
+            //println!("find_error() CASE 2");
+            //if a > b { (a - b) }
+            //if a < b { (a - b) }
+            //else { 0f32 }
+            (a-b)
+        }
+        else if a >= 0f32 && b < 0f32 // CASE 3
+        {
+            //println!("find_error() CASE 3");
+            if a > b { (a - b) }
+            //if a < b { panic!("something's very wrong") }
+            else {panic!("find_error(), case 3")}
+            //else { 0f32 }
+        }
+        else if a < 0f32 && b >= 0f32 // CASE 4
+        {
+            //println!("find_error() CASE 4");
+            if a > b { panic!("something's very wrong")}
+            //if a < b { (a - b) }
+            else {(a-b)}
+            //else { 0f32 }
+        }
+        else {panic!("find_error() didn't return properly");}
+
+
+}*/
+
 pub fn find_error(a: f32, b: f32) -> f32 {
 
         // Takes two arguments, then determines the difference between them
@@ -270,7 +344,6 @@ pub fn find_error(a: f32, b: f32) -> f32 {
         else { 0.01f32}
 
 }
-
 
 // Used for debugging, for making sure that the signs of variables that should
 // be tied to one another are actually the same
@@ -371,45 +444,28 @@ impl Point {
     // TO_DO: Might want to create the basic constructors and editor methods
     // 'yon' stands for 'yes or no
 
-    pub fn origin() -> Point {
-        Point { x: 0usize, y: 0usize, z:0usize, yon: false }
+    // Creates a point at the origin (0,0,0)
+    pub fn default() -> Point {
+        Point { x: 0f32, y: 0f32, z:0f32, yon: false }
     }
 
     // Writes the state of the desired point to the command line
     pub fn print(&self) {
-        println!("[x:{},y:{},z:{},state:{}]",self.x,self.y,self.z,self.yon);
+        println!("[x: {} ,y: {} ,z: {} ,state: {} ]",self.x,self.y,self.z,self.yon);
     }
 
-    pub fn new(x: usize, y: usize, z: usize, yon: bool) -> Point {
-        Point { x: x, y: y, z: z, yon: false }
+    pub fn new(x: f32, y: f32, z: f32, yon: bool) -> Point {
+        Point { x: x, y: y, z: z, yon: yon }
     }
 
     // Changes the state of a Point to 'true'
-    pub fn make_true(&self) -> Self {
-        Point {x: self.x, y: self.y, z: self.z, yon: true }
+    pub fn make_true(&mut self) {
+        self.yon = true;
     }
 
     // Changes the state of a Point to 'false'
-    pub fn make_false(&self) -> Self {
-        Point {x: self.x, y: self.y, z: self.z, yon: false }
+    pub fn make_false(&mut self) {
+        self.yon = false;
     }
 
-}
-
-// creates a virtual search grid, based on the 'length' variable defined in
-// main.rs. The default setting of all points is as 'false'
-pub fn create_mesh() -> [[[Point; length]; length];length] {
-    let mut state = [[[Point {x: 0usize, y: 0usize, z: 0usize, yon: false}; length]; length]; length] ;
-    for x in 0..length
-    {
-        for y in 0..length
-        {
-            for z in 0..length
-            {
-                let mut point = Point::new(x,y,z,false);
-                state[x][y][z] = point;
-            }
-        }
-    }
-    state
 }
