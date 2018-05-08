@@ -58,7 +58,7 @@
 
     
     
-    <link rel="prev" href="COVER_PAGE_qc.html" />
+    <link rel="prev" href="qc_20180508.html" />
     
 
     </head>
@@ -127,7 +127,20 @@
             <ul class="articles">
                 
     
-        <li class="chapter active" data-level="1.3.1" data-path="qc_20180506.html">
+        <li class="chapter " data-level="1.3.1" data-path="qc_20180508.html">
+            
+                <a href="qc_20180508.html">
+            
+                    
+                    qc_20180508.md
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.3.2" data-path="qc_20180506.html">
             
                 <a href="qc_20180506.html">
             
@@ -206,8 +219,21 @@ resilient), and is consistently displaying overdamped behavior that makes
 actually passing through the waypoints to achieve &apos;searched&apos; status difficult</li>
 <li>The formerly usize-based array has been replaced by a Point-struct based
 vector of arbitrary length and population. This should be more useful for
-specifying search methods in the future</li>
+specifying search methods in the future.</li>
 </ul>
+<p>Okay, quick update. I lied. The 3D locus stability is really not there. It&apos;s
+really buggy, and I&apos;m not sure why. Even when the SMDs for yaw and pitch
+are disabled, I&apos;m still getting movement in those axes. Which, you know,
+shouldn&apos;t be happening. So back to the drawing board. Probably not going to have
+any updates for a bit, since the 3D locus is in a separate project.</p>
+<p>Game plan moving forward is to work offline there, and once that&apos;s figured out,
+migrate it back into this repository. The main differences between the locus-3D
+repo and nav_and_whimsy should just be in main.rs. As a result, both the
+kinematics_lib and tests.rs should be able to be migrated back to nav_and_whimsy
+without having any breaking changes there.</p>
+<p>In the future, I&apos;m guessing this is one of those times when creating a branch
+separate from the master would make sense, but since it&apos;s just me at the moment,
+who really cares?</p>
 
                                 
                                 </section>
@@ -235,7 +261,7 @@ specifying search methods in the future</li>
 
             
                 
-                <a href="COVER_PAGE_qc.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: Work Log, quietlychris">
+                <a href="qc_20180508.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: qc_20180508.md">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
@@ -247,7 +273,7 @@ specifying search methods in the future</li>
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"qc_20180506.md","level":"1.3.1","depth":2,"previous":{"title":"Work Log, quietlychris","level":"1.3","depth":1,"path":"COVER_PAGE_qc.md","ref":"COVER_PAGE_qc.md","articles":[{"title":"qc_20180506.md","level":"1.3.1","depth":2,"path":"qc_20180506.md","ref":"qc_20180506.md","articles":[]}]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["livereload"],"pluginsConfig":{"livereload":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"qc_20180506.md","mtime":"2018-05-06T20:59:56.252Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-05-06T21:00:16.985Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"qc_20180506.md","level":"1.3.2","depth":2,"previous":{"title":"qc_20180508.md","level":"1.3.1","depth":2,"path":"qc_20180508.md","ref":"qc_20180508.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["livereload"],"pluginsConfig":{"livereload":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"qc_20180506.md","mtime":"2018-05-07T00:14:40.291Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-05-08T15:27:04.530Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

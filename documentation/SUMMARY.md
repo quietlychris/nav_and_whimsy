@@ -5,4 +5,5 @@
 * [Basic Framework](framework.md)
 
 * [Work Log, quietlychris](COVER_PAGE_qc.md)
+  * [qc_20180508.md](qc_20180508.md)
   * [qc_20180506.md](qc_20180506.md)
