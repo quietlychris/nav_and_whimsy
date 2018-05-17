@@ -57,16 +57,11 @@ impl State {
     // Determines the 3D quadrant of the desired position, with the current
     // position as the origin
     // TO_DO: Convert to 3D
-    pub fn determine_quadrant(&mut self, desired: State) -> usize {
+    pub fn determine_quadrant(&self, desired: State) -> usize {
         // Only to be used for yaw DoF
 
         let mut quadrant = 0;
         let mut _return_key = 1;
-
-        // Error handling for having NaN values returned
-        if self.xaxis.var.is_nan() == true {self.xaxis.var = 0f32 }
-        if self.yaxis.var.is_nan() == true {self.yaxis.var = 0f32 }
-
         if (desired.xaxis.var > self.xaxis.var) && (desired.yaxis.var > self.yaxis.var) {
             quadrant = 1;
         }
@@ -75,11 +70,11 @@ impl State {
             // if in quadrant two, then the the increase the degree by (pi/2) or 90deg
         }
         if (desired.xaxis.var < self.xaxis.var) && (desired.yaxis.var < self.yaxis.var) {
-            // if in quadrant two, then the the increase the degree by (pi) or 180deg
+            // if in quadrant three, then the the increase the degree by (pi) or 180deg
             quadrant = 3;
         }
         if (desired.xaxis.var > self.xaxis.var) && (desired.yaxis.var < self.yaxis.var) {
-            // if in quadrant two, then the the increase the degree by (3pi/2) or 270deg
+            // if in quadrant four, then the the increase the degree by (3pi/2) or 270deg
             quadrant = 4;
         }
 
@@ -91,17 +86,15 @@ impl State {
             // if to the South, the the direction of travel is exactly 270 degrees
             quadrant = 22;
         }
-        if (desired.yaxis.var == self.yaxis.var) && (desired.xaxis.var < self.xaxis.var) {
+        if (desired.yaxis.var == self.yaxis.var) && (desired.xaxis.var > self.xaxis.var) {
             // if to the East, the direction of travel is exactly 0 degrees
             quadrant = 33;
         }
-        if (desired.yaxis.var == self.yaxis.var) && (desired.xaxis.var > self.xaxis.var) {
+        if (desired.yaxis.var == self.yaxis.var) && (desired.xaxis.var < self.xaxis.var) {
             // if to the West, the direction of travel is exactly 180 degrees
             quadrant = 44;
         }
 
-        // Prints low-res info about current and desired state
-        //current.print_state();
 
         // For debugging
         /*match quadrant {
@@ -163,24 +156,25 @@ impl State {
     // Calculates the desired yaw (in absolute, not relative) required to move
     // from one point to another
     pub fn calculate_yaw(&mut self, desired: State, quadrant: usize) -> f32 {
-        let mut yaw = ((desired.yaxis.var - self.yaxis.var)/(desired.xaxis.var - self.xaxis.var)).atan().to_degrees();
-        if yaw.is_nan() == true {yaw = 1f32}
+        //let mut yaw = ((desired.yaxis.var - self.yaxis.var)/(desired.xaxis.var - self.xaxis.var)).atan().to_degrees();
+        let mut yaw = (find_error(desired.yaxis.var,self.yaxis.var)/find_error(desired.xaxis.var,self.xaxis.var)).atan().to_degrees();
+        if yaw.is_normal() != true {panic!("desired yaw is out of bounds");}
         let mut additive = 0f32;
         match quadrant {
             1 => additive = 0f32,
             2 => additive = 180f32,
             3 => additive = 180f32,
+            // TO_DO: Should quadrant 4 be 0 or 360?
             4 => additive = 360f32,
 
-            11 => self.yaxis.var = 90f32,
-            22 => self.yaxis.var = 270f32,
-            33 => self.yaxis.var = 180f32,
-            44 => self.yaxis.var = 0f32,
-            _ => println!("error grid_search_smd_lib::State::calculate_yaw function, 'quadrant var returned {}'",quadrant),
+            //11 => self.yaw.var = 90f32,
+            //22 => self.yaw.var = 270f32,
+            //33 => self.yaw.var = 180f32,
+            //44 => self.yaw.var = 0f32,
+            _ => println!("error in stable_locus_lib::State::calculate_yaw function"),
         }
-        //println!("yaw before additive: {}, with additive {}",self.yaxis.varaw,additive);
         yaw = yaw + additive;
-        //println!("yaw after additive: {}",self.yaxis.varaw);
+        //println!("Desired yaw: {}, current yaw: {:.2}",yaw,self.yaw.var);
         yaw
     }
 
@@ -189,12 +183,16 @@ impl State {
         let above = if (self.zaxis.var > desired.zaxis.var) { true } else {false};
         //let dxy = (self.xaxis.var.powf(2.0) + desired.xaxis.var.powf(2.0)).powf(0.5);
         let dxy = (find_error(desired.xaxis.var,self.xaxis.var).powf(2.0) + find_error(desired.yaxis.var,self.yaxis.var).powf(2.0)).powf(0.5);
-        let dz = desired.zaxis.var - self.zaxis.var;
-        //let dz = find_error(desired.zaxis.var,self.zaxis.var);
+        //let dz = desired.zaxis.var - self.zaxis.var;
+        let dz = find_error(desired.zaxis.var,self.zaxis.var);
         let mut pitch = (dz/dxy).atan().to_degrees();
         //let pitch = (desired.zaxis.var)
-        // TO_DO: uncomment pitch is nan when gains search is done
-        // if pitch.is_nan() == true { panic!("calculate_pitch: Pitch is NaN!");}
+        if pitch.is_nan() == true {
+            println!("calculate_pitch: Pitch is NaN!");
+            if above == true {pitch = 90f32;}
+            if above == false { pitch = -90f32;}
+        }
+
         pitch
 
     }
@@ -235,8 +233,9 @@ impl DoF {
 
         let error = find_error(desired,self.var);
         self.vardd = (-smd.c/smd.m)*self.vard + (smd.k/smd.m)*error;
-        if self.vardd.is_nan() == true {self.vardd = 1f32}
-        if self.vardd > 1000f32 {self.vardd = 1f32}
+        //if self.vardd.is_nan() == true {self.vardd = 1f32}
+        //if self.vardd > 1000f32 {self.vardd = 1f32}
+        //if self.vardd.is_normal() != true {panic!("acceleration is out of bounds");}
         self.vard = self.vard + self.vardd*DT;
         self.var = self.var + self.vard*DT;
     }
@@ -262,6 +261,7 @@ pub fn random_num() -> f32{
 // Particularly useful for angular distances
 // find_error(desired, current)
 
+// find_error(desired, current)
 pub fn find_error(a: f32, b: f32) -> f32 {
 
         // Takes two arguments, then determines the difference between them
@@ -290,14 +290,12 @@ pub fn find_error(a: f32, b: f32) -> f32 {
         }
         else //if a < 0f32 && b > 0f32 // CASE 4
         {
-            if a > b { panic!("something's very wrong");}
-            else if a < b { (a - b) }
-            else { panic!("find_error() conditions not met!"); }
+            //if a > b { panic!("something's very wrong");}
+            (a - b)
+
         }
-        //else { 0.01f32}
 
 }
-
 // Used for debugging, for making sure that the signs of variables that should
 // be tied to one another are actually the same
 pub fn sign_check(a: f32, b: f32) -> bool {
