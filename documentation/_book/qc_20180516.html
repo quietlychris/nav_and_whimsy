@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Work Log, quietlychris · GitBook</title>
+        <title>qc_20180516.md · GitBook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.3">
@@ -57,10 +57,10 @@
     <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="qc_20180508.html" />
+    <link rel="next" href="qc_20180519.html" />
     
     
-    <link rel="prev" href="framework.html" />
+    <link rel="prev" href="qc_20180506.html" />
     
 
     </head>
@@ -115,7 +115,7 @@
             
         </li>
     
-        <li class="chapter active" data-level="1.3" data-path="COVER_PAGE_qc.html">
+        <li class="chapter " data-level="1.3" data-path="COVER_PAGE_qc.html">
             
                 <a href="COVER_PAGE_qc.html">
             
@@ -155,7 +155,7 @@
             
         </li>
     
-        <li class="chapter " data-level="1.3.3" data-path="qc_20180516.html">
+        <li class="chapter active" data-level="1.3.3" data-path="qc_20180516.html">
             
                 <a href="qc_20180516.html">
             
@@ -216,7 +216,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="." >Work Log, quietlychris</a>
+        <a href="." >qc_20180516.md</a>
     </h1>
 </div>
 
@@ -231,11 +231,35 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id=""> </h1>
-<h1 id=""> </h1>
-<h1 id=""> </h1>
-<h1 id="work-log"><p align="center">Work Log</p></h1>
-<h4 id="quietlychris"><p align="center">quietlychris</p></h4>
+                                <h3 id="2018-05-16">2018-05-16</h3>
+<h4 id="may-16-2018">May 16, 2018</h4>
+<p>Alright, so a new iteration of the control is up, and I think that this version
+is a bit closer to a realistic version, with kinematics that are, well,
+actually kinematic. Still not sure about the yaw and pitch controls, though;
+the 2D stable locus code that I was using kept saying that the yaw was above and
+below +/- 360 degrees, and all my attempts to change that such that we ended up,
+well, not there, ended up messing with the turns and giving really weird
+results. As a result, not super certain about that, and it bears looking into
+more. However, everything else seems to be going a bit better.</p>
+<p>Here&apos;s a screenshot of what we&apos;ve currently got:</p>
+<p><img src="images/20180516_locus.png" width="450" height="350"></p>
+<p>Gains are set to:</p>
+<pre><code>let mut position_smd = SMD::new(1.0,0.5,0.3);
+let mut yaw_smd = SMD::new(0.1,0.1,5.0);
+let mut pitch_smd = SMD::new(1.0,0.1,1.10);
+</code></pre><p>Tests need to be implemented for the make-the-point-true-if-we&apos;ve-touched-it
+functionality. I messed up on that for a little today, and it could&apos;ve taken a
+lot longer to find that error, plus I guess maybe get some points for elegance?</p>
+<p>Pitch controls are pretty bad. In fact, maybe it&apos;s not pitch, maybe it&apos;s just
+the entire approach the the z-axis right now, I&apos;m not entirely sure. Obviously,
+things are a bit in flux right now. I&apos;m probably going to keep out of the actual
+nav_and_whimsy project for a while longer, and keep sticking to the woodshed.</p>
+<p>Also; the code needs to be commented more! Obviously, we&apos;re sort of in
+root-canal mode right now, but since I&apos;m making commits to an actual repo, the
+correct practice here (and the one I&apos;d want to see if it wasn&apos;t just me
+contributing to this project) is that anything that gets submitted to an
+official repository and not a local branch has proper documentation submitted
+at time of commit.</p>
 
                                 
                                 </section>
@@ -263,12 +287,12 @@
 
             
                 
-                <a href="framework.html" class="navigation navigation-prev " aria-label="Previous page: Basic Framework">
+                <a href="qc_20180506.html" class="navigation navigation-prev " aria-label="Previous page: qc_20180506.md">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
                 
-                <a href="qc_20180508.html" class="navigation navigation-next " aria-label="Next page: qc_20180508.md">
+                <a href="qc_20180519.html" class="navigation navigation-next " aria-label="Next page: qc_20180519.md">
                     <i class="fa fa-angle-right"></i>
                 </a>
                 
@@ -279,7 +303,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Work Log, quietlychris","level":"1.3","depth":1,"next":{"title":"qc_20180508.md","level":"1.3.1","depth":2,"path":"qc_20180508.md","ref":"qc_20180508.md","articles":[]},"previous":{"title":"Basic Framework","level":"1.2","depth":1,"path":"framework.md","ref":"framework.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["livereload"],"pluginsConfig":{"livereload":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"COVER_PAGE_qc.md","mtime":"2018-05-06T21:07:55.318Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-05-19T18:07:32.236Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"qc_20180516.md","level":"1.3.3","depth":2,"next":{"title":"qc_20180519.md","level":"1.3.4","depth":2,"path":"qc_20180519.md","ref":"qc_20180519.md","articles":[]},"previous":{"title":"qc_20180506.md","level":"1.3.2","depth":2,"path":"qc_20180506.md","ref":"qc_20180506.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["livereload"],"pluginsConfig":{"livereload":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"qc_20180516.md","mtime":"2018-05-19T18:08:29.826Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-05-19T18:07:32.236Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <title>Work Log, quietlychris · GitBook</title>
+        <title>qc_20180519.md · GitBook</title>
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
         <meta name="description" content="">
         <meta name="generator" content="GitBook 3.2.3">
@@ -57,10 +57,8 @@
     <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
 
     
-    <link rel="next" href="qc_20180508.html" />
     
-    
-    <link rel="prev" href="framework.html" />
+    <link rel="prev" href="qc_20180516.html" />
     
 
     </head>
@@ -115,7 +113,7 @@
             
         </li>
     
-        <li class="chapter active" data-level="1.3" data-path="COVER_PAGE_qc.html">
+        <li class="chapter " data-level="1.3" data-path="COVER_PAGE_qc.html">
             
                 <a href="COVER_PAGE_qc.html">
             
@@ -168,7 +166,7 @@
             
         </li>
     
-        <li class="chapter " data-level="1.3.4" data-path="qc_20180519.html">
+        <li class="chapter active" data-level="1.3.4" data-path="qc_20180519.html">
             
                 <a href="qc_20180519.html">
             
@@ -216,7 +214,7 @@
     <!-- Title -->
     <h1>
         <i class="fa fa-circle-o-notch fa-spin"></i>
-        <a href="." >Work Log, quietlychris</a>
+        <a href="." >qc_20180519.md</a>
     </h1>
 </div>
 
@@ -231,11 +229,46 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <h1 id=""> </h1>
-<h1 id=""> </h1>
-<h1 id=""> </h1>
-<h1 id="work-log"><p align="center">Work Log</p></h1>
-<h4 id="quietlychris"><p align="center">quietlychris</p></h4>
+                                <h3 id="2018-05-19">2018-05-19</h3>
+<h4 id="may-19-2018">May 19, 2018</h4>
+<p>Hi there! Okay, I think we&apos;ve made some progress, although none of it&apos;s been
+in nav_and_whimsy proper, but have been more offline in the sub-modules. I
+started off working in 2D again, and got some gains for both the xy-plane
+positional and yaw-direction SMDs. I then took those gains, and transferred
+them into a 3D stable locus simulation (basically, I copied the entire
+nav_and_whimsy directory, then cut out most of the stuff that wasn&apos;t going to
+be used for being stable for a single point in three dimensions).</p>
+<p>That part was a little bit more complicated, since I moved a bunch of stuff
+around. Here&apos;s a couple of the major changes:</p>
+<ul>
+<li><p>xy-plane travel and z-axis travel are now pretty strongly DE-coupled. The
+only real point of touch between them is when the desired yaw is being
+found, but for SMD behaviors and error criteria, the two should be seperate
+from this point moving forward. Now, this isn&apos;t technically necessary-
+it should be possible incorporate the three of them into a framework where
+none of the axes are treated preferentially, but it complicates things more
+than a little for building stability, since it becomes more difficult to
+actually troubleshoot if any of the contributing functions have errors in
+them; i.e. if the pitch calculation turns out to be messed up, while the
+yaw calculation is perfect, the resulting behavior is much more difficult to
+efficiently investigate. Since I&apos;m breaking things all over the damn place
+anyway, I&apos;m choosing ease over elegance for the moment.</p>
+<p>TO_DO: Make it elegant. Easy, right?</p>
+</li>
+<li><p>The SMD&apos;s are now inside of the travel loops, which means that the gains
+can be treated as functions rather than as constants! Sounds like a pretty
+simple thing, right? No! This is huge, because now gains themselves can be
+based on much more complicated criteria, particularly the error functions
+for pretty much all DoF. Although, of course, there&apos;s some difficult stuff
+there for actually figuring out which expressions to use, this seriously
+opens up some fun optimization problems and math. Already, I&apos;ve found a
+decent range of stable gains that make it quick to hit an initial point.</p>
+</li>
+</ul>
+<p>Next steps from here are really just to transfer all of that progress into the
+nav_and_whimsy repo proper, although the stability of multi-point meshes is
+still hardly guaranteed, so maybe a little more work there first.
+I&apos;ll hopefully have some neat screenshots to add to that. That&apos;s all for now! </p>
 
                                 
                                 </section>
@@ -263,14 +296,10 @@
 
             
                 
-                <a href="framework.html" class="navigation navigation-prev " aria-label="Previous page: Basic Framework">
+                <a href="qc_20180516.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page: qc_20180516.md">
                     <i class="fa fa-angle-left"></i>
                 </a>
                 
-                
-                <a href="qc_20180508.html" class="navigation navigation-next " aria-label="Next page: qc_20180508.md">
-                    <i class="fa fa-angle-right"></i>
-                </a>
                 
             
         
@@ -279,7 +308,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Work Log, quietlychris","level":"1.3","depth":1,"next":{"title":"qc_20180508.md","level":"1.3.1","depth":2,"path":"qc_20180508.md","ref":"qc_20180508.md","articles":[]},"previous":{"title":"Basic Framework","level":"1.2","depth":1,"path":"framework.md","ref":"framework.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["livereload"],"pluginsConfig":{"livereload":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"COVER_PAGE_qc.md","mtime":"2018-05-06T21:07:55.318Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-05-19T18:07:32.236Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"qc_20180519.md","level":"1.3.4","depth":2,"previous":{"title":"qc_20180516.md","level":"1.3.3","depth":2,"path":"qc_20180516.md","ref":"qc_20180516.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["livereload"],"pluginsConfig":{"livereload":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"qc_20180519.md","mtime":"2018-05-19T22:44:20.695Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-05-19T18:07:32.236Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
