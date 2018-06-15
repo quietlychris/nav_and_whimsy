@@ -1,202 +1,135 @@
-// Kinematic mesh Search file
-// cmoran 2018
+// cmoran, 2018
 
-
-// Imports library module
 mod kinematics_lib;
 mod tests;
 
-// Pulls public functions and custom data types in from library
-use kinematics_lib::*;
 use kinematics_lib::SMD;
 use kinematics_lib::DoF;
 use kinematics_lib::State;
+use kinematics_lib::Point;
+//use kinematics_lib::*;
 use std::f32;
 //for writing to log file
 use std::fs::File;
 use std::io::{Write, BufWriter};
+//use std::fs::write;
 
-// DT is the kinematic time step for state integration
-pub const DT: f32 = 0.1;
-// 'length' is used for geneating a plotting the search mesh
-pub const length: isize = 4;
+//use std::convert::{From, Into};
+//use std::string::String;
+
+pub const DT: f32 = 0.01;
+//pub const thrust_const: f32 = 1.0;
+//pub const length: usize = 9; // used as grid constant
 
 fn main() {
 
-    // Creates new log files
     let f = File::create("run_log.csv").expect("Unable to create file");
-    let g = File::create("waypoints.csv").expect("Unable to create file");
     let mut f = BufWriter::new(f);
+    let g = File::create("waypoints.csv").expect("Unable to create file");
     let mut g = BufWriter::new(g);
 
-    // Creates meshtor of desired Points, defaulted to un-searched
     let mut mesh: Vec<Point> = Vec::new();
-    /*for z in 0isize..1isize {
-        for y in -2isize..3isize {
-            for x in -2isize..3isize {
-
-                let mut point = Point::new(x as f32,y as f32,z as f32,false);
-                mesh.push(point);
-
-            }
+    for y in -3isize..4isize {
+        for x in -3isize..4isize {
+            let mut point = Point::new(x as f32,y as f32,false);
+            mesh.push(point);
         }
-    }*/
-
-    // Test points that can replace the for-loop generated ones
-    mesh.push(Point::new(4.0,-4.0,1.0,false));
-    mesh.push(Point::new(2.0,-6.0,0.50,false));
-    mesh.push(Point::new(-6.0,-4.0,-1.0,false));
-    mesh.push(Point::new(4.0,3.0,0.50,false));
-    //mesh.push(Point::new(2.5,2.5,0.0,false));
+    }
 
 
-    // Creates robot at with initial conditions
-    let mut current_global = State::new(DoF::new(0.0,0.0,0.0),
-                                 DoF::new(0.0,0.0,0.0),
-                                 DoF::new(0.0,0.0,0.0),
+    let mut current = State::new(DoF::new(0.0,0.0,0.0),
                                  DoF::new(0.0,0.0,0.0),
                                  DoF::new(0.0,0.0,0.0));
 
+    /*let desired = State::new(DoF::new(1.0,0.0,0.0),
+                             DoF::new(1.0,0.0,0.0),
+                             DoF::new(0.0,0.0,0.0));*/
+    let position_smd = SMD::new(1.0,0.9,0.90);
+    let yaw_smd = SMD::new(0.1,0.1,0.9);
+    let yaw_allowance: f32 = 0.50;
+    let yaw_speed_allowance: f32 = 3.0;
+    let max_speed: f32 = 0.3;
+    let zero_speed_allowance: f32 = 0.01;
+    let time_max: f32 = 900.0;
 
-    // Creates spring-mass-damper controllers for both yaw and 2D position
-    // Remember, with too strong a spring and too small a mass, accelerations
-    // may jump to high and lead to unstable behavior
-    let mut position_smd = SMD::new(1.3,0.3,0.2);
-    let mut yaw_smd = SMD::new(0.1,0.1,2.5);
-    let mut pitch_smd = SMD::new(1.0,0.7,1.0);
-
-    // Writes current position to log
-    f.write_all(current_global.xaxis.var.to_string().as_bytes());
-    f.write_all(b",");
-    f.write_all(current_global.yaxis.var.to_string().as_bytes());
-    f.write_all(b"\n");
-
-
-    // Creates time variable, setting to zero intially
     let mut time: f32 = 0.0;
-    let mut cumulative_error = 0.0f32;
-    let mut cumulative_z_error = 0.0f32;
-
-    for counter_1 in 0..mesh.len() {
-
-        let mut desired_global = State::new(DoF::new(mesh[counter_1].x,0.0,0.0),
-                                            DoF::new(mesh[counter_1].y,0.0,0.0),
-                                            DoF::new(mesh[counter_1].z,0.0,0.0),
-                                            DoF::new(0.0,0.0,0.0),
-                                            DoF::new(0.0,0.0,0.0) );
-
-                // Puts waypoints into log file
-        g.write_all(desired_global.xaxis.var.to_string().as_bytes());
-        g.write_all(b",");
-        g.write_all(desired_global.yaxis.var.to_string().as_bytes());
-        g.write_all(b",");
-        g.write_all(desired_global.zaxis.var.to_string().as_bytes());
-        g.write_all(b"\n");
-
-        //current.print_state(desired);
+    for counter_1 in 0..mesh.len()
+    {
 
         while mesh[counter_1].yon != true
         {
-            // Need to create a local reference frame
-            let mut desired_local = State::new(DoF::new(desired_global.xaxis.var-current_global.xaxis.var,0.0,0.0),
-                                               DoF::new(desired_global.yaxis.var-current_global.yaxis.var,0.0,0.0),
-                                               DoF::default(),
-                                               DoF::default(),
-                                               DoF::default()
-                                           );
-            let mut current_local = State::new(DoF::default(),
-                                               DoF::default(),
-                                               DoF::default(),
-                                               current_global.yaw,
-                                               DoF::default() );
-            let quadrant = current_local.determine_quadrant(desired_local);
-            let desired_yaw = current_local.calculate_yaw(desired_local,quadrant);
-            current_local.yaw.update_w_smd(desired_yaw,yaw_smd); // This should create the appropriate angular acceleration
-            //print!("Desired yaw: {} ",desired_yaw);
-            current_global.yaw.vardd = current_local.yaw.vardd;
-            current_global.yaw.vard = current_global.yaw.vard + current_global.yaw.vardd*DT;
-            current_global.yaw.var = current_global.yaw.var + current_global.yaw.vard*DT;
-            //println!(" current_global yaw: {}",current_global.yaw.var);
+            let desired = State::new(DoF::new(mesh[counter_1].x,0.0,0.0),
+                                     DoF::new(mesh[counter_1].y,0.0,0.0),
+                                     DoF::new(0.0,0.0,0.0));
 
-            let calculated_pitch = current_global.calculate_pitch(desired_global);
-            //println!("desired pitch is: {}",calculated_pitch);
-            current_global.pitch.update_w_smd(calculated_pitch,pitch_smd);
-            //current.print_state(desired);
-
-            current_global.update_pos_smd(desired_global,position_smd);
-
-            let x_error = find_error(desired_global.xaxis.var,current_global.xaxis.var);
-            let y_error = find_error(desired_global.yaxis.var,current_global.yaxis.var);
-            let z_error = find_error(desired_global.zaxis.var,current_global.zaxis.var);
-            let total_pos_error = (x_error.powf(2.0) + y_error.powf(2.0) + z_error.powf(2.0)).powf(0.5);
-            if total_pos_error > 50f32
-            {
-                println!("Total pos error: {}",total_pos_error);
-                for a in 0..mesh.len() {
-                    mesh[a].print();
-                }
-                panic!("too far out of bounds");
+            { // Writes waypoint to file
+                 g.write_all(desired.xaxis.var.to_string().as_bytes()).expect("couldn't write x position for waypoint");
+                 g.write_all(b",").expect("couldn't write comma");
+                 g.write_all(desired.yaxis.var.to_string().as_bytes()).expect("could write y position for waypoint");
+                 g.write_all(b"\n").expect("couldn't write endline");
             }
-            println!("x: {:.2} y: {:.2} z: {:.2}",current_global.xaxis.var,current_global.yaxis.var,current_global.zaxis.var);
-            let min_distance: f32 = 0.3;
+
+            let desired_yaw = current.calculate_yaw(desired);
+            let total_velocity = (current.xaxis.vard.powf(2.0) + current.yaxis.vard.powf(2.0)).powf(0.5);
+            //println!("In main(): desired_yaw vs current: {:.3} {:.3}",desired_yaw,current.yaw.var);
+            let mut acceleration: (f32, f32) = (0.0,0.0);
+            let yaw_difference = (desired_yaw - current.yaw.var).abs();
+
+            // NEED THREE CASES HERE:
+            // In right direction, proceed to target
+            // In wrong direction, slow to zero velocity
+            // At zero velocity in wrong direction, turn to target
+
+            if yaw_difference < yaw_allowance && current.yaw.vard.abs() < yaw_speed_allowance && total_velocity < max_speed {
+                println!("CASE 1: Everything's right, b/c yaw {:.2} ~ {:2} && speed {:.2} < {:.2}",
+                    current.yaw.var,desired_yaw,total_velocity,max_speed);
+                acceleration = (current.update_position(desired,position_smd,yaw_allowance),current.update_direction(desired_yaw,yaw_smd));
+            }
+            else if total_velocity < zero_speed_allowance && yaw_difference > yaw_allowance
+            {
+                println!("CASE 2: Just updating direction, b/c total_v = {:.2} < {:.2} and yaw {:.2} ~ {:2} -> yaw-delta {:.2} > {:.2} ",total_velocity,zero_speed_allowance,current.yaw.var,desired_yaw,yaw_difference,yaw_allowance);
+                acceleration.1 = current.update_direction(desired_yaw,yaw_smd);
+            }
+            else
+            {
+                println!("CASE 3: trending speed towards zero, b/c ({:.2} > {:.2})",total_velocity,max_speed);
+                // If direction is right, and angular speed isn't too high, update direction and position
+                acceleration = current.trend_speed_towards_zero(yaw_smd);
+            }
+
+            let xvardd = acceleration.0*current.yaw.var.to_radians().cos();
+            let yvardd = acceleration.0*current.yaw.var.to_radians().sin();
+            let yawvardd = acceleration.1;
+            current.kinematic_update(xvardd,yvardd,yawvardd);
+
+            { // Writes position to file
+                f.write_all(current.xaxis.var.to_string().as_bytes()).expect("couldn't write x position");
+                f.write_all(b",").expect("couldn't write comma");
+                f.write_all(current.yaxis.var.to_string().as_bytes()).expect("could write y position");
+                f.write_all(b"\n").expect("couldn't write endline");
+            }
+
+            let min_distance: f32 = 0.1;
             for counter_2 in 0..mesh.len()
             {
 
-                if find_error(current_global.xaxis.var,mesh[counter_2].x).abs() < min_distance
-                    && find_error(current_global.yaxis.var,mesh[counter_2].y).abs() < min_distance
-                        && find_error(current_global.zaxis.var,mesh[counter_2].z).abs() < min_distance
-                            && mesh[counter_2].yon!=true
-                            {
-                                let x_error = find_error(current_global.xaxis.var,mesh[counter_2].x).abs();
-                                let y_error = find_error(current_global.yaxis.var,mesh[counter_2].y).abs();
-                                let z_error = find_error(current_global.zaxis.var,mesh[counter_2].z).abs();
-                                println!("errors: x: {}, y: {}, z: {}",x_error,y_error,z_error);
-                                current_global.print_state(desired_global);
-                                mesh[counter_2].make_true();
-
-                            }
+                if (current.xaxis.var - mesh[counter_2].x).abs() < min_distance
+                    && (current.yaxis.var - mesh[counter_2].y).abs() < min_distance
+                        && mesh[counter_2].yon!=true
+                        {
+                            mesh[counter_2].make_true();
+                        }
 
             }
 
-
-                // Writes new position to log
-
-                f.write_all(current_global.xaxis.var.to_string().as_bytes());
-                f.write_all(b",");
-                f.write_all(current_global.yaxis.var.to_string().as_bytes());
-                f.write_all(b",");
-                f.write_all(current_global.zaxis.var.to_string().as_bytes());
-                f.write_all(b"\n");
-
-                // Increases total time
-                time = time + DT;
-                if time > 200f32 {break;}
-                cumulative_error = cumulative_error + total_pos_error;
-                cumulative_z_error = cumulative_z_error + z_error.abs();
-                //if time > 4000f32 {break;}
+            time = time + DT;
+            if time > time_max {break;}
         }
-
-        /*
-        for counter_3 in 0..mesh.len()
-        {
-            // TO_DO: Should be replaced with idiomatic Rust iterator
-            let mut counter_4 = 0isize;
-            if mesh[counter_3].yon==true {counter_4 = counter_4 + 1isize;}
-            if counter_4 == (mesh.len() as isize) {break;}
-        }*/
-
-    }
-
-    // Prints total time to search mesh to the command line
-    if time < 10000f32 {
-        println!("Total time of completion is {:.2} seconds",time);
-        let norm_error = cumulative_error/(time/DT);
-        println!("Normalized error for this run: {}",norm_error);
-        println!("Normalized z-error: {}",cumulative_z_error/(time/DT));
-    }
-    //println!("Now plotting updated mesh:");
-    // Plots mesh updated with searched points
     for a in 0..mesh.len() {
         mesh[a].print();
+    }
+    if time > time_max {break;}
+
+
     }
 }

@@ -1,7 +1,7 @@
 # Introduction
 
 Hi there! This is the documentation for the nav_and_whimsy project, which uses
-the gitbook format. To start, there's some important information:
+the GitBook format. To start, there's some important information:
 - __UNSTABLE__. Seriously. Things are broken and seriously changed about
   every time they're touched.
 - The documentation is open to change. The primary structure is to have
@@ -32,7 +32,7 @@ core functionality of the program itself. A lot of this is for development of
 my own abilities.
 
 #### What Nav_and_Whimsy Is At The Moment
-At the moment is currently May 2018. This is a side-project, so updates will
+At the moment is currently June 2018. This is a side-project, so updates will
 likely be irregular, and a fair amount of development happens without being
 pushed to the GitHub repo. It is _NOT_ ready for use. The core mechanics are
 still being developed, and the visualization back-end is extremely simple.

@@ -1,221 +1,231 @@
 #![allow(dead_code)]
-
-// importing external libraries
 extern crate rand;
 extern crate ansi_term;
+//#[path = "pid_lib.rs"] mod pid_lib;
 
-use self::ansi_term::Color::Red;
-use self::ansi_term::Color::Green;
-
-// Pulling in public constants from main.rs
+//use self::pid_lib::*;
+//use std::iter::Iterator;
+//use grid_search_lib::ansi_term::Color::Red;
+//use grid_search_lib::ansi_term::Color::Green;
+//use grid_search_lib::ansi_term::Color::Yellow;
+//use grid_search_lib::ansi_term::Color::Blue;
+//use grid_search_lib::ansi_term::Color::Cyan;
+//use std;
 use DT;
-use length;
+//use thrust_const;
 use std::f32;
 
-// Degree of Freedom data type, has a variable, and that variable first and
-// second derivative (ex. position, velocity, acceleration)
 #[derive(Clone,Copy)]
 pub struct DoF {pub var: f32, pub vard: f32, pub vardd: f32 }
-
-// Memory data type for PID controller implementation
 #[derive(Clone, Copy)]
 pub struct PIDSet {pub pre_error: f32, pub integral: f32}
-
-// Implementation of a 1D PID controller -- unused as of 3/15/18
 #[derive(Clone, Copy)]
 pub struct PIDController {pub input: DoF, pub setpoint: DoF, kp: f32, ki: f32, kd: f32, rmv: PIDSet}
-
-// Compound data type for all degrees of freedom
-// Used to define the robot's exact state
-#[derive(Clone, Copy)]
-pub struct State {pub xaxis: DoF, pub yaxis: DoF, pub zaxis: DoF, pub yaw: DoF, pub pitch: DoF}
-
-// Spring-mass-damper, with mass m, viscous damping coefficient c, spring
-// constant k,
-#[derive(Clone, Copy)]
-pub struct SMD {pub error: f32, m: f32, c: f32, k: f32} // spring-mass-damper
-
-// Point is the basic element of the virtual search grid, containing 3 axes
 #[derive(Clone,Copy)]
-pub struct Point {pub x: f32, pub y: f32, pub z: f32, pub yon: bool }
-
+pub struct State {pub xaxis: DoF, pub yaxis: DoF, pub yaw: DoF}
+#[derive(Clone,Copy)]
+pub struct Point {pub x: f32, pub y: f32, pub yon: bool }
+#[derive(Clone,Copy)]
+pub struct SMD {pub error: f32, pub m: f32, pub c: f32, pub k: f32} // spring-mass-damper
 
 impl State {
 
-    // default() and new() are basic type constructors
     pub fn default() -> Self {
-        State {xaxis: DoF::default(), yaxis: DoF::default(),
-               zaxis: DoF::default(), yaw: DoF::default(),
-               pitch: DoF::default() }
+        State {xaxis: DoF::default(), yaxis: DoF::default(), yaw: DoF::default() }
     }
 
-    pub fn new(xaxis: DoF, yaxis: DoF, zaxis: DoF, yaw: DoF, pitch: DoF) -> Self {
-        State {xaxis: xaxis, yaxis: yaxis,
-               zaxis: zaxis, yaw: yaw, pitch: pitch }
+    pub fn new(xaxis: DoF, yaxis: DoF, yaw: DoF) -> Self {
+        State {xaxis: xaxis, yaxis: yaxis, yaw: yaw}
     }
 
-    // Determines the 3D quadrant of the desired position, with the current
-    // position as the origin
-    // TO_DO: Convert to 3D
-    pub fn determine_quadrant(&self, desired: State) -> usize {
+    pub fn determine_quadrant(&self, desired: State) -> String {
         // Only to be used for yaw DoF
 
-        let mut quadrant = 0;
-        let mut _return_key = 1;
+        let mut quadrant = "nada";
+        let mut _return_key = "default_key";
+        // desired in quadrant 1
         if (desired.xaxis.var > self.xaxis.var) && (desired.yaxis.var > self.yaxis.var) {
-            quadrant = 1;
+            quadrant = "q1";
         }
+        // desired in quadrant 2
         if (desired.xaxis.var < self.xaxis.var) && (desired.yaxis.var > self.yaxis.var) {
-            quadrant = 2;
+            quadrant = "q2";
             // if in quadrant two, then the the increase the degree by (pi/2) or 90deg
         }
+        //desired in quadrant 3
         if (desired.xaxis.var < self.xaxis.var) && (desired.yaxis.var < self.yaxis.var) {
-            // if in quadrant three, then the the increase the degree by (pi) or 180deg
-            quadrant = 3;
+            // if in quadrant two, then the the increase the degree by (pi) or 180deg
+            quadrant = "q3";
         }
+        // desired in quadrant 4
         if (desired.xaxis.var > self.xaxis.var) && (desired.yaxis.var < self.yaxis.var) {
-            // if in quadrant four, then the the increase the degree by (3pi/2) or 270deg
-            quadrant = 4;
+            // if in quadrant two, then the the increase the degree by (3pi/2) or 270deg
+            quadrant = "q4";
         }
 
         if (desired.xaxis.var == self.xaxis.var) && (desired.yaxis.var > self.yaxis.var) {
             // if to the North, then direction of travel is exactly 90 degrees
-            quadrant = 11;
+            quadrant = "north";
         }
         if (desired.xaxis.var == self.xaxis.var) && (desired.yaxis.var < self.yaxis.var) {
             // if to the South, the the direction of travel is exactly 270 degrees
-            quadrant = 22;
-        }
-        if (desired.yaxis.var == self.yaxis.var) && (desired.xaxis.var > self.xaxis.var) {
-            // if to the East, the direction of travel is exactly 0 degrees
-            quadrant = 33;
+            quadrant = "south";
         }
         if (desired.yaxis.var == self.yaxis.var) && (desired.xaxis.var < self.xaxis.var) {
+            // if to the East, the direction of travel is exactly 0 degrees
+            quadrant = "west";
+        }
+        if (desired.yaxis.var == self.yaxis.var) && (desired.xaxis.var > self.xaxis.var) {
             // if to the West, the direction of travel is exactly 180 degrees
-            quadrant = 44;
+            quadrant = "east";
         }
 
 
         // For debugging
         /*match quadrant {
-            1 => println!("Quadrant one"),
-            2 => println!("Quadrant two"),
-            3 => println!("Quadrant three"),
-            4 => println!("Quadrant four"),
+            "q1" => println!("Quadrant one"),
+            "q2" => println!("Quadrant two"),
+            "q3" => println!("Quadrant three"),
+            "q2" => println!("Quadrant four"),
 
-            11 => println!("Position is directly North"),
-            22 => println!("Position is directly South"),
-            33 => println!("Position is directly East"),
-            44 => println!("Position is directly West"),
+            "north" => println!("Position is directly North"),
+            "south" => println!("Position is directly South"),
+            "east" => println!("Position is directly East"),
+            "east" => println!("Position is directly West"),
             _ => println!("Are we going where we already are?"),
         }*/
 
-        quadrant
+        quadrant.to_string()
     }
 
-    // Updates the State variable using a SMD controller
-    // TO_DO: Need to stabilize local accelerations and zero/zero positions
-    pub fn update_pos_smd(&mut self, desired: State, smd: SMD) {
+    pub fn calculate_yaw(&mut self, desired: State) -> f32 {
+        //if self.yaw.var.is_normal() == false {println!("current yaw is not normal! => current.yaw.var = 0");self.yaw.var = 0f32;}
+        if self.xaxis.var.is_nan() == true {println!("calculate_yaw::xaxis.var is nan -> 0f32");self.xaxis.var=0f32;}
+        if self.yaxis.var.is_nan() == true {println!("calculate_yaw::yaxis.var is nan -> 0f32");self.yaxis.var=0f32;}
+        let mut desired_yaw = ((desired.yaxis.var - self.yaxis.var)/(desired.xaxis.var - self.xaxis.var)).atan().to_degrees();
+        //println!("calculate_yaw self values: {} {}",self.xaxis.var,self.yaxis.var);
+        if desired_yaw.is_normal() == false {
+            println!("desired_yaw is not normal!");
+            desired_yaw = (desired.yaxis.var/desired.xaxis.var).atan().to_degrees();;
+        }
+        let quadrant = self.determine_quadrant(desired);
+        match quadrant.as_ref() {
+            "q2" => desired_yaw = desired_yaw + 180f32,
+            "q3" => desired_yaw = desired_yaw - 180f32,
+            "west" => desired_yaw = 180f32,
+            _ => ()
+        }
 
-        let x_error = find_error(desired.xaxis.var,self.xaxis.var);
-        let y_error = find_error(desired.yaxis.var,self.yaxis.var);
-        let z_error = find_error(desired.zaxis.var,self.zaxis.var);
-        //println!("update_pos_smd: z_error is {}",z_error);
-        let total_pos_error = (x_error.powf(2.0) + y_error.powf(2.0) + z_error.powf(2.0)).powf(0.5);
-        // println!("x_error is {}, y_error is {}, total is {}",x_error,y_error,total_pos_error);
-        let total_velocity = (self.xaxis.vard.powf(2.0) + self.yaxis.vard.powf(2.0) + self.zaxis.vard.powf(2.0)).powf(0.5);
-        //let total_velocity = (self.xaxis.vard.powf(2.0) + self.yaxis.vard.powf(2.0) ).powf(0.5);
-        // println!("x_veloc is {}, y_veloc is {}",self.xaxis.vard,self.yaxis.vard);
-        let acceleration = (-smd.c/smd.m)*total_velocity + (smd.k/smd.m)*total_pos_error;
-        // println!("acceleration is {}",acceleration);
-        self.xaxis.vardd = acceleration*self.yaw.var.to_radians().cos();
-        // if self.xaxis.vardd.is_nan() == true || self.xaxis.vardd.is_infinite() == true || self.xaxis.vardd.abs() > 20f32
-        //    {self.xaxis.vardd = 0f32 }
+        if desired_yaw > 180f32 {desired_yaw = desired_yaw - 360f32;}
+        if desired_yaw < -180f32 {desired_yaw = desired_yaw + 360f32;}
+        //println!("according to calculate_yaw, the desired_yaw is {}",desired_yaw);
+        desired_yaw
+    }
+
+    pub fn update_direction(&mut self, desired_yaw: f32, yaw_smd: SMD) -> f32 {
+
+        //println!("in update_direction(), desired_yaw is {}",desired_yaw);
+        let mut yawvardd: f32 = 0.0;
+        let mut error = desired_yaw - self.yaw.var;
+        if error.abs() < 180f32
+        {
+            yawvardd = (-yaw_smd.c/yaw_smd.m)*self.yaw.vard + (yaw_smd.k/yaw_smd.m)*error;
+        }
+        else
+        {
+            if self.yaw.var >= 0f32 { error = 360f32 - error.abs(); }
+            else {error = error - 360f32; }
+            yawvardd = (-yaw_smd.c/yaw_smd.m)*self.yaw.vard + (yaw_smd.k/yaw_smd.m)*error;
+        }
+        yawvardd = (-yaw_smd.c/yaw_smd.m)*self.yaw.vard + (yaw_smd.k/yaw_smd.m)*error;
+        if yawvardd.is_nan() == true {yawvardd = 0.0;}
+        yawvardd
+    }
+
+    pub fn update_position(&mut self, desired: State, smd: SMD,yaw_allowance:f32) -> f32 {
+
+        let x_error = desired.xaxis.var - self.xaxis.var;
+        let y_error = desired.yaxis.var - self.yaxis.var;
+        let total_pos_error = (x_error.powf(2.0) + y_error.powf(2.0)).powf(0.5);
+        //println!("x_error is {}, y_error is {}, total is {}",x_error,y_error,total_pos_error);
+        let total_velocity = (self.xaxis.vard.powf(2.0) + self.yaxis.vard.powf(2.0)).powf(0.5);
+        //println!("x_veloc is {}, y_veloc is {}",self.xaxis.vard,self.yaxis.vard);
+        //let acceleration = if total_pos_error <= slow_distance { (-smd.c/smd.m)*total_velocity }
+        //    else {(-smd.c/smd.m)*total_velocity + (smd.k/smd.m)*total_pos_error  };
+        let desired_yaw = self.calculate_yaw(desired);
+        //println!("In update_position(): desired_yaw vs current: {} {}",desired_yaw,self.yaw.var);
+        let mut acceleration = 0.0f32;
+        // TO_DO: Not sure I like having this control logic here
+        if (self.yaw.var - desired_yaw).abs() < yaw_allowance
+        {
+            acceleration = (-smd.c/smd.m)*total_velocity + (smd.k/smd.m)*total_pos_error;
+        }
+        acceleration
+    }
+
+    pub fn trend_speed_towards_zero(&mut self, yaw_smd: SMD) -> (f32,f32) {
+
+        // Defining slow-down SMD directly in this function
+        let smd = SMD::new(1.0,2.0,0.0);
+        //let yaw_smd = SMD::new(0.5,0.1,0.5);
+        //TO_DO: Not the most elegant error handling for NaN values
+        if self.xaxis.vard.is_nan() == true {println!("trend_speed_towards_zero::xaxis.var is nan -> 0.0001f32");self.xaxis.vard=0.0001f32;}
+        if self.yaxis.vard.is_nan() == true {println!("trend_speed_towards_zero::yaxis.var is nan -> 0.0001f32");self.yaxis.vard=0.0001f32;}
+        let total_velocity = (self.xaxis.vard.powf(2.0) + self.yaxis.vard.powf(2.0)).powf(0.5);
+        //println!("current.xaxis.vard: {:.2}, current.yaxis.vard: {:.2}",self.xaxis.vard,self.yaxis.vard);
+        let desired_yaw = (self.yaxis.vard/self.xaxis.vard).atan().to_degrees();
+        //println!("for slow-down, desired_yaw is {:.3} and current yaw is {:.3}, leading to difference of {:.3}",desired_yaw,self.yaw.var,(desired_yaw - self.yaw.var).abs());
+
+        let mut acceleration = 0.0f32;
+        let yaw_allowance: f32 = 1.0;
+        //println!("for slow-down, difference between desired and current yaw is {} ",(desired_yaw - self.yaw.var).abs());
+        if (desired_yaw - self.yaw.var).abs() < yaw_allowance
+        {
+            //println!("xy velocity: {:.3} {:.3} self.yaw.var = {}",self.xaxis.vard,self.yaxis.vard,self.yaw.var);
+            if self.xaxis.vard >= 0f32 && self.yaxis.vard > 0f32 {
+                // both positive x and y velocity
+                acceleration =  (-smd.c/smd.m)*total_velocity;
+            }
+            else if self.xaxis.vard > 0f32 && self.yaxis.vard <= 0f32 {
+                // positive x and negative y velocity
+                acceleration =  (-smd.c/smd.m)*total_velocity;
+            }
+            else if self.xaxis.vard <= 0f32 && self.yaxis.vard <= 0f32 {
+                // negative x and negative y velocity
+                acceleration =  (smd.c/smd.m)*total_velocity;
+            }
+            else if self.xaxis.vard <= 0f32 && self.yaxis.vard >= 0f32 {
+                // negative x and positive y velocity
+                acceleration =  (smd.c/smd.m)*total_velocity;
+            }
+
+        }
+        println!("Slowing down: ({:.2},{:.2}) for velocity ({:.2},{:.2})",acceleration,self.update_direction(desired_yaw,yaw_smd),self.xaxis.vard,self.yaxis.vard);
+        (acceleration,self.update_direction(desired_yaw,yaw_smd))
+    }
+
+    pub fn kinematic_update(&mut self, xvardd: f32, yvardd: f32, yawvardd: f32) {
+        // Let's not use the DoF kinematic_update() function quite yet
+
+        self.xaxis.vardd = xvardd;
         self.xaxis.vard = self.xaxis.vard + self.xaxis.vardd*DT;
         self.xaxis.var = self.xaxis.var + self.xaxis.vard*DT;
 
-        self.yaxis.vardd = acceleration*self.yaw.var.to_radians().sin();
-        // if self.yaxis.vardd.is_nan() == true || self.yaxis.vardd.is_infinite() == true || self.yaxis.vardd.abs() > 20f32
-        //    {self.yaxis.vardd = 0f32 }
-        // println!("yaw {}",self.yaw.var);
+        self.yaxis.vardd = yvardd;
         self.yaxis.vard = self.yaxis.vard + self.yaxis.vardd*DT;
         self.yaxis.var = self.yaxis.var + self.yaxis.vard*DT;
 
+        self.yaw.vardd = yawvardd;
+        self.yaw.vard = self.yaw.vard + self.yaw.vardd*DT;
+        self.yaw.var = self.yaw.var + self.yaw.vard*DT;
 
-        //if acceleration.abs() > 1000f32 {panic!("update_pos_smd: total accel too large")}
-        //println!("pitch in degrees: {} ",self.pitch.var);
-        self.zaxis.vardd = acceleration*self.pitch.var.to_radians().sin();
-        // if self.zaxis.vardd.is_nan() == true || self.zaxis.vardd.is_infinite() == true || self.zaxis.vardd.abs() > 20f32
-        //    {self.zaxis.vardd = 0f32 }
-        self.zaxis.vard = self.zaxis.vard + self.zaxis.vardd*DT;
-        self.zaxis.var = self.zaxis.var + self.zaxis.vard*DT;
-        // println!("x-accel is {}, y-accel is {}, z-accel is {}",self.xaxis.vardd,self.yaxis.vardd,self.zaxis.vardd);
-
-    }
-
-    // Calculates the desired yaw (in absolute, not relative) required to move
-    // from one point to another
-    pub fn calculate_yaw(&mut self, desired: State, quadrant: usize) -> f32 {
-        //let mut yaw = ((desired.yaxis.var - self.yaxis.var)/(desired.xaxis.var - self.xaxis.var)).atan().to_degrees();
-        let mut yaw = (find_error(desired.yaxis.var,self.yaxis.var)/find_error(desired.xaxis.var,self.xaxis.var)).atan().to_degrees();
-        if yaw.is_normal() != true {panic!("desired yaw is out of bounds");}
-        let mut additive = 0f32;
-        match quadrant {
-            1 => additive = 0f32,
-            2 => additive = 180f32,
-            3 => additive = 180f32,
-            // TO_DO: Should quadrant 4 be 0 or 360?
-            4 => additive = 360f32,
-
-            //11 => self.yaw.var = 90f32,
-            //22 => self.yaw.var = 270f32,
-            //33 => self.yaw.var = 180f32,
-            //44 => self.yaw.var = 0f32,
-            _ => println!("error in stable_locus_lib::State::calculate_yaw function"),
-        }
-        yaw = yaw + additive;
-        //println!("Desired yaw: {}, current yaw: {:.2}",yaw,self.yaw.var);
-        yaw
-    }
-
-    // TO_DO: Needs to be tested
-    pub fn calculate_pitch(&mut self, desired: State) -> f32 {
-        let above = if (self.zaxis.var > desired.zaxis.var) { true } else {false};
-        //let dxy = (self.xaxis.var.powf(2.0) + desired.xaxis.var.powf(2.0)).powf(0.5);
-        let dxy = (find_error(desired.xaxis.var,self.xaxis.var).powf(2.0) + find_error(desired.yaxis.var,self.yaxis.var).powf(2.0)).powf(0.5);
-        //let dz = desired.zaxis.var - self.zaxis.var;
-        let dz = find_error(desired.zaxis.var,self.zaxis.var);
-        let mut pitch = (dz/dxy).atan().to_degrees();
-        //let pitch = (desired.zaxis.var)
-        if pitch.is_nan() == true {
-            println!("calculate_pitch: Pitch is NaN!");
-            if above == true {pitch = 90f32;}
-            if above == false { pitch = -90f32;}
-        }
-
-        pitch
+        if self.yaw.var > 180f32 {self.yaw.var = self.yaw.var - 360f32;}
+        if self.yaw.var < -180f32 {self.yaw.var = self.yaw.var + 360f32;}
+        // TO_DO: Error handling for this NaN requires desired, but I'm not sure I want to pass another variable to this functions
+        // let desired_yaw = self.calculate_yaw(desired);
+        //if self.yaw.var.is_nan() == true { println!("State::kinematic_update() : self.yaw.var.is_nan() == true"); self.yaw.var = desired_yaw;}
 
     }
-
-    // Prints low-res info about current and desired state
-    pub fn print_state(&self,desired: State) {
-        println!("current position: [{:.3},{:.3},{:.3}] desired position: [{},{},{}], pitch {:.2}",
-            self.xaxis.var,self.yaxis.var,self.zaxis.var,
-            desired.xaxis.var,desired.yaxis.var,desired.zaxis.var,
-            self.pitch.var);
-    }
-
-    pub fn print_state_detailed(&self) {
-
-        println!("  Acceleration  |   Velocity  |  Position ");
-        println!("X:      {:.3}   |     {:.3}   |   {:.3}",self.xaxis.vardd,self.xaxis.vard,self.xaxis.var);
-        println!("Y:      {:.3}   |    {:.3}   |   {:.3}",self.yaxis.vardd,self.yaxis.vard,self.yaxis.var);
-        println!("Z:    {:.3}   |   {:.3}   |   {:.3}",self.zaxis.vardd,self.zaxis.vard,self.zaxis.var);
-        if self.xaxis.vardd.is_nan() == true {panic!("x-acceleration is nan!")}
-        if self.yaxis.vardd.is_nan() == true {panic!("y-acceleration is nan!")}
-        if self.zaxis.vardd.is_nan() == true {panic!("z-acceleration is nan!")}
-    }
-
 }
 
 impl DoF {
@@ -228,21 +238,26 @@ impl DoF {
         DoF {var: var, vard: vard, vardd: vardd}
     }
 
-    // One-dimensional update of a DoF using an SMD controller
+    // this is one-dimensional, so not useful for position
     pub fn update_w_smd(&mut self, desired: f32, smd: SMD) {
 
         let error = find_error(desired,self.var);
+        //println!("desired.position.x = {}, error = {}",desired.position.x,error);
         self.vardd = (-smd.c/smd.m)*self.vard + (smd.k/smd.m)*error;
-        //if self.vardd.is_nan() == true {self.vardd = 1f32}
-        //if self.vardd > 1000f32 {self.vardd = 1f32}
-        //if self.vardd.is_normal() != true {panic!("acceleration is out of bounds");}
+        self.vard = self.vard + self.vardd*DT;
+        self.var = self.var + self.vard*DT;
+        //println!("")
+    }
+
+    // TO_DO: STILL EXPERIMENTAL, TRY UNIT TESTS
+    pub fn kinematic_update(&mut self, acceleration: f32) {
+        self.vardd = acceleration;
         self.vard = self.vard + self.vardd*DT;
         self.var = self.var + self.vard*DT;
     }
 
 }
 
-// generates a random number between [-1,1]
 pub fn random_num() -> f32{
     // Defines a random variable in the range [-1:1] in the form
     // f32. Can be used to define a variable.
@@ -253,13 +268,6 @@ pub fn random_num() -> f32{
     //let y = u as f32;
     u
 }
-
-// Determines the closest difference between two inputs
-// Particularly useful for angular distances
-// find_error(desired, current)
-// Determines the closest difference between two inputs
-// Particularly useful for angular distances
-// find_error(desired, current)
 
 // find_error(desired, current)
 pub fn find_error(a: f32, b: f32) -> f32 {
@@ -290,14 +298,13 @@ pub fn find_error(a: f32, b: f32) -> f32 {
         }
         else //if a < 0f32 && b > 0f32 // CASE 4
         {
-            //if a > b { panic!("something's very wrong");}
-            (a - b)
+            if a > b { panic!("something's very wrong");}
+            else {(a - b)}
 
         }
 
 }
-// Used for debugging, for making sure that the signs of variables that should
-// be tied to one another are actually the same
+
 pub fn sign_check(a: f32, b: f32) -> bool {
     let sign_check: bool = loop
     {
@@ -349,8 +356,20 @@ impl PIDController {
         }
     }
 
-    // Primary functionality of the PID loop, takes a state (here, a position)
-    // and a desired state (named setpoint)
+    /*pub fn control(&mut self,mut value: Position, setpoint: Position) -> Position {
+
+        // Primary functionality of the PID loop, takes a state (here, a position)
+        // and a desired state (named setpoint)
+
+        let error = setpoint.x - value.x;
+        let integral = self.rmv.integral + (error*DT);
+        let derivative = (error - self.rmv.pre_error)/DT;
+        let output = (self.kp*error) + (self.ki*self.rmv.integral) + (self.kd*derivative);
+        value.x = value.x + output;
+        self.rmv = PIDSet {pre_error: error, integral: integral};
+        value
+    }*/
+
     pub fn control_dof(&mut self,mut value: DoF, setpoint: DoF) -> DoF {
 
         // Primary functionality of the PID loop, takes a state (here, a position)
@@ -395,18 +414,18 @@ impl Point {
     // TO_DO: Might want to create the basic constructors and editor methods
     // 'yon' stands for 'yes or no
 
-    // Creates a point at the origin (0,0,0)
+    // Creates a point at the origin (0,0)
     pub fn default() -> Point {
-        Point { x: 0f32, y: 0f32, z:0f32, yon: false }
+        Point { x: 0f32, y: 0f32, yon: false }
     }
 
     // Writes the state of the desired point to the command line
     pub fn print(&self) {
-        println!("[x: {} ,y: {} ,z: {} ,state: {} ]",self.x,self.y,self.z,self.yon);
+        println!("[x: {:.3}, y: {:.3}, state: {} ]",self.x,self.y,self.yon);
     }
 
-    pub fn new(x: f32, y: f32, z: f32, yon: bool) -> Point {
-        Point { x: x, y: y, z: z, yon: yon }
+    pub fn new(x: f32, y: f32, yon: bool) -> Point {
+        Point { x: x, y: y, yon: yon }
     }
 
     // Changes the state of a Point to 'true'

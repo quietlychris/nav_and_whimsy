@@ -181,6 +181,19 @@
             
         </li>
     
+        <li class="chapter " data-level="1.3.5" data-path="qc_20180607-0614.html">
+            
+                <a href="qc_20180607-0614.html">
+            
+                    
+                    qc_20180607-0614.md
+            
+                </a>
+            
+
+            
+        </li>
+    
 
             </ul>
             
@@ -231,8 +244,20 @@
     
                                 <section class="normal markdown-section">
                                 
-                                <p>This is an overview of the functionality and implementation of the nav_and_whimsy.</p>
-<p>TBD</p>
+                                <h3 id="functionality-framework">Functionality Framework</h3>
+<p>This is an overview of the functionality and implementation of nav_and_whimsy.</p>
+<p><strong>This part&apos;s definitely not done</strong></p>
+<p>This project is being built as a simulation for the efficient movement of a object
+in three-dimensional space, such that the the position of this object can be planned
+and mapped such that it can hit various arbitrarily placed waypoints.</p>
+<p>First, it&apos;s important to note the degrees of freedom. Since drag dynamics have not
+yet been implemented, the standard roll vector has been eliminated, leaving only
+the x,y, and z cartesian axes and the pitch and yaw angles. The leaves a control
+problem with 5 degrees of freedom, with the following scheme.</p>
+<ul>
+<li>Travel due to accelerations in the x-y plane is assumed to be due to a
+single force like a motor, in a direction based on the yaw angle. This velocity</li>
+</ul>
 
                                 
                                 </section>
@@ -276,7 +301,7 @@
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"Basic Framework","level":"1.2","depth":1,"next":{"title":"Work Log, quietlychris","level":"1.3","depth":1,"path":"COVER_PAGE_qc.md","ref":"COVER_PAGE_qc.md","articles":[{"title":"qc_20180508.md","level":"1.3.1","depth":2,"path":"qc_20180508.md","ref":"qc_20180508.md","articles":[]},{"title":"qc_20180506.md","level":"1.3.2","depth":2,"path":"qc_20180506.md","ref":"qc_20180506.md","articles":[]},{"title":"qc_20180516.md","level":"1.3.3","depth":2,"path":"qc_20180516.md","ref":"qc_20180516.md","articles":[]},{"title":"qc_20180519.md","level":"1.3.4","depth":2,"path":"qc_20180519.md","ref":"qc_20180519.md","articles":[]}]},"previous":{"title":"Introduction","level":"1.1","depth":1,"path":"README.md","ref":"README.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["livereload"],"pluginsConfig":{"livereload":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"framework.md","mtime":"2018-05-06T21:08:52.526Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-05-19T18:07:32.236Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"Basic Framework","level":"1.2","depth":1,"next":{"title":"Work Log, quietlychris","level":"1.3","depth":1,"path":"COVER_PAGE_qc.md","ref":"COVER_PAGE_qc.md","articles":[{"title":"qc_20180508.md","level":"1.3.1","depth":2,"path":"qc_20180508.md","ref":"qc_20180508.md","articles":[]},{"title":"qc_20180506.md","level":"1.3.2","depth":2,"path":"qc_20180506.md","ref":"qc_20180506.md","articles":[]},{"title":"qc_20180516.md","level":"1.3.3","depth":2,"path":"qc_20180516.md","ref":"qc_20180516.md","articles":[]},{"title":"qc_20180519.md","level":"1.3.4","depth":2,"path":"qc_20180519.md","ref":"qc_20180519.md","articles":[]},{"title":"qc_20180607-0614.md","level":"1.3.5","depth":2,"path":"qc_20180607-0614.md","ref":"qc_20180607-0614.md","articles":[]}]},"previous":{"title":"Introduction","level":"1.1","depth":1,"path":"README.md","ref":"README.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["livereload"],"pluginsConfig":{"livereload":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"framework.md","mtime":"2018-06-15T02:29:35.349Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-06-15T02:21:59.582Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>

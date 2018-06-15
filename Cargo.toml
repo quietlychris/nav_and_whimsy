@@ -1,5 +1,5 @@
 [package]
-name = "3D-kinematics"
+name = "nav_and_whimsy"
 version = "0.1.0"
 authors = ["chris"]
 
