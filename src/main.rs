@@ -21,6 +21,28 @@ fn main() {
     let mut f = BufWriter::new(f);
     let g = File::create("waypoints.csv").expect("Unable to create file");
     let mut g = BufWriter::new(g);
+    { // Writes headers to position file
+        f.write_all(b"xaxis.var").expect("couldn't write xaxis.var header");
+        f.write_all(b",").expect("couldn't write comma");
+        f.write_all(b"xaxis.vard").expect("couldn't write xaxis.vard header");
+        f.write_all(b",").expect("couldn't write comma");
+        f.write_all(b"xaxis.vardd").expect("couldn't write xaxis.vardd header");
+        f.write_all(b",").expect("couldn't write comma");
+
+        f.write_all(b"yaxis.var").expect("couldn't write yaxis.var header");
+        f.write_all(b",").expect("couldn't write comma");
+        f.write_all(b"yaxis.vard").expect("couldn't write yaxis.vard header");
+        f.write_all(b",").expect("couldn't write comma");
+        f.write_all(b"yaxis.vardd").expect("couldn't write yaxis.vardd header");
+        f.write_all(b",").expect("couldn't write comma");
+
+        f.write_all(b"yaw.var").expect("couldn't write yaw.var header");
+        f.write_all(b",").expect("couldn't write comma");
+        f.write_all(b"yaw.vard").expect("couldn't write yaw.vard header");
+        f.write_all(b",").expect("couldn't write comma");
+        f.write_all(b"yaw.vardd").expect("couldn't write yaw.vardd header");
+        f.write_all(b"\n").expect("couldn't write comma");
+    }
 
     // Creates an array of points to be searched
     let mut mesh: Vec<Point> = Vec::new();
@@ -31,14 +53,12 @@ fn main() {
         }
     }
 
-    // Writes waypoints in mesh[] to file
-    for a in 0..mesh.len() {
+    for a in 0..mesh.len() { // Writes waypoints in mesh[] to file
         g.write_all(mesh[a].x.to_string().as_bytes()).expect("couldn't write x position for waypoint");
         g.write_all(b",").expect("couldn't write comma");
         g.write_all(mesh[a].y.to_string().as_bytes()).expect("could write y position for waypoint");
         g.write_all(b"\n").expect("couldn't write endline");
     }
-
 
     // Sets initial position
     let mut current = State::new(DoF::new(0.0,0.0,0.0),
@@ -59,7 +79,6 @@ fn main() {
     let mut time: f32 = 0.0;
     for counter_1 in 0..mesh.len()
     {
-
         while mesh[counter_1].yon != true
         {
             let desired = State::new(DoF::new(mesh[counter_1].x,0.0,0.0),
@@ -93,38 +112,52 @@ fn main() {
                 acceleration = current.trend_speed_towards_zero(yaw_smd);
             }
 
+            // Assigns acceleration values for the various degrees of freedom
             let xvardd = acceleration.0*current.yaw.var.to_radians().cos();
             let yvardd = acceleration.0*current.yaw.var.to_radians().sin();
             let yawvardd = acceleration.1;
             current.kinematic_update(xvardd,yvardd,yawvardd);
 
-            { // Writes position to file
+            { // Writes state data to position file
                 f.write_all(current.xaxis.var.to_string().as_bytes()).expect("couldn't write x position");
                 f.write_all(b",").expect("couldn't write comma");
+                f.write_all(current.xaxis.vard.to_string().as_bytes()).expect("couldn't write x position");
+                f.write_all(b",").expect("couldn't write comma");
+                f.write_all(current.xaxis.vardd.to_string().as_bytes()).expect("couldn't write x position");
+                f.write_all(b",").expect("couldn't write comma");
+
                 f.write_all(current.yaxis.var.to_string().as_bytes()).expect("could write y position");
+                f.write_all(b",").expect("couldn't write comma");
+                f.write_all(current.yaxis.vard.to_string().as_bytes()).expect("could write y position");
+                f.write_all(b",").expect("couldn't write comma");
+                f.write_all(current.yaxis.vardd.to_string().as_bytes()).expect("could write y position");
+                f.write_all(b",").expect("couldn't write comma");
+
+                f.write_all(current.yaw.var.to_string().as_bytes()).expect("could write y position");
+                f.write_all(b",").expect("couldn't write comma");
+                f.write_all(current.yaw.vard.to_string().as_bytes()).expect("could write y position");
+                f.write_all(b",").expect("couldn't write comma");
+                f.write_all(current.yaw.vardd.to_string().as_bytes()).expect("could write y position");
                 f.write_all(b"\n").expect("couldn't write endline");
             }
 
             let min_distance: f32 = 0.1;
-            for counter_2 in 0..mesh.len()
-            {
-
+            for counter_2 in 0..mesh.len() { // If close enough to a mesh point, marks that point as true
                 if (current.xaxis.var - mesh[counter_2].x).abs() < min_distance
                     && (current.yaxis.var - mesh[counter_2].y).abs() < min_distance
                         && mesh[counter_2].yon!=true
                         {
                             mesh[counter_2].make_true();
                         }
-
             }
 
             time = time + DT;
-            if time > time_max {break;}
+            if time > time_max {println!("Went over maximum time"); break;}
         }
 
     }
     println!("End time is: {:.2}",time);
-    for a in 0..mesh.len() {
+    for a in 0..mesh.len() { // Prints mesh results
         mesh[a].print();
     }
 }

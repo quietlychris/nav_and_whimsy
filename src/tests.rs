@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod tests {
 
+    // Note: can put #[ignore] underneath #[test] to stop that test from running
+    // Running with '$ cargo test -- --noignore' will send command-line output even if test passes
+
     use kinematics_lib::*;
     use std::f32;
     use DT;
@@ -417,4 +420,42 @@ mod tests {
 
     }
 
+    #[test]
+    fn kinematics_test() {
+        let limit: f32 = 0.1;
+        let mut dir_vector: Vec<(f32,f32)> = Vec::new();
+        for y in -1isize..2isize {
+            for x in -1isize..2isize {
+                let mut dir = (x as f32,y as f32);
+                dir_vector.push(dir);
+            }
+        }
+
+        for a in 0..dir_vector.len()
+        { // Travel along the positive x-axis
+            let mut time: f32 = 0.0;
+            let time_limit: f32 = 10.0;
+            let mut current = State::new(DoF::new(0.0,0.0,0.0),
+                                         DoF::new(0.0,0.0,0.0),
+                                         DoF::new(0.0,0.0,0.0));
+            let xvardd = dir_vector[a].0;
+            let yvardd = dir_vector[a].1;
+            println!("x-y acceleration: [{},{}]",xvardd,yvardd);
+            let answer_x = current.xaxis.var + current.xaxis.vard*time_limit + 0.5*xvardd*(time_limit.powf(2.0));
+            let answer_y = current.yaxis.var + current.yaxis.vard*time_limit + 0.5*yvardd*(time_limit.powf(2.0));
+            while time < time_limit {
+                // Based on the common kinematic equation x = x_o + v*t + .5*a*t^2
+                current.kinematic_update(xvardd,yvardd,0.0);
+                time = time + DT;
+            }
+            println!("[Correct answer, result] -> x:[{:.2},{:.2}] y:[{:.2},{:.2}]",answer_x,current.xaxis.var,answer_y,current.yaxis.var);
+            let tof = if ( (current.xaxis.var - answer_x).abs() <= limit && (current.yaxis.var - answer_y).abs() <= limit ) {true} else {false};
+            assert_eq!(true,tof);
+        }
+
+
+
+
+
+    }
 }
