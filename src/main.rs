@@ -12,14 +12,8 @@ use std::f32;
 //for writing to log file
 use std::fs::File;
 use std::io::{Write, BufWriter};
-//use std::fs::write;
-
-//use std::convert::{From, Into};
-//use std::string::String;
 
 pub const DT: f32 = 0.01;
-//pub const thrust_const: f32 = 1.0;
-//pub const length: usize = 9; // used as grid constant
 
 fn main() {
 
@@ -28,6 +22,7 @@ fn main() {
     let g = File::create("waypoints.csv").expect("Unable to create file");
     let mut g = BufWriter::new(g);
 
+    // Creates an array of points to be searched
     let mut mesh: Vec<Point> = Vec::new();
     for y in -3isize..4isize {
         for x in -3isize..4isize {
@@ -36,19 +31,28 @@ fn main() {
         }
     }
 
+    // Writes waypoints in mesh[] to file
+    for a in 0..mesh.len() {
+        g.write_all(mesh[a].x.to_string().as_bytes()).expect("couldn't write x position for waypoint");
+        g.write_all(b",").expect("couldn't write comma");
+        g.write_all(mesh[a].y.to_string().as_bytes()).expect("could write y position for waypoint");
+        g.write_all(b"\n").expect("couldn't write endline");
+    }
 
+
+    // Sets initial position
     let mut current = State::new(DoF::new(0.0,0.0,0.0),
                                  DoF::new(0.0,0.0,0.0),
                                  DoF::new(0.0,0.0,0.0));
 
-    /*let desired = State::new(DoF::new(1.0,0.0,0.0),
-                             DoF::new(1.0,0.0,0.0),
-                             DoF::new(0.0,0.0,0.0));*/
-    let position_smd = SMD::new(1.0,0.9,0.90);
-    let yaw_smd = SMD::new(0.1,0.1,0.9);
-    let yaw_allowance: f32 = 0.50;
+    // Creates SMDs for both x,y, and yaw DoF
+    let position_smd = SMD::new(1.0,0.7,0.90);
+    let yaw_smd = SMD::new(0.1,0.3,0.7);
+
+    // Sets physical limit parameters for allowances
+    let yaw_allowance: f32 = 0.2;
     let yaw_speed_allowance: f32 = 3.0;
-    let max_speed: f32 = 0.3;
+    let max_speed: f32 = 0.5;
     let zero_speed_allowance: f32 = 0.01;
     let time_max: f32 = 900.0;
 
@@ -62,13 +66,6 @@ fn main() {
                                      DoF::new(mesh[counter_1].y,0.0,0.0),
                                      DoF::new(0.0,0.0,0.0));
 
-            { // Writes waypoint to file
-                 g.write_all(desired.xaxis.var.to_string().as_bytes()).expect("couldn't write x position for waypoint");
-                 g.write_all(b",").expect("couldn't write comma");
-                 g.write_all(desired.yaxis.var.to_string().as_bytes()).expect("could write y position for waypoint");
-                 g.write_all(b"\n").expect("couldn't write endline");
-            }
-
             let desired_yaw = current.calculate_yaw(desired);
             let total_velocity = (current.xaxis.vard.powf(2.0) + current.yaxis.vard.powf(2.0)).powf(0.5);
             //println!("In main(): desired_yaw vs current: {:.3} {:.3}",desired_yaw,current.yaw.var);
@@ -81,18 +78,17 @@ fn main() {
             // At zero velocity in wrong direction, turn to target
 
             if yaw_difference < yaw_allowance && current.yaw.vard.abs() < yaw_speed_allowance && total_velocity < max_speed {
-                println!("CASE 1: Everything's right, b/c yaw {:.2} ~ {:2} && speed {:.2} < {:.2}",
-                    current.yaw.var,desired_yaw,total_velocity,max_speed);
+                //println!("CASE 1: Everything's right, b/c yaw {:.3} ~ {:.3} && speed {:.3} < {:.3}", current.yaw.var,desired_yaw,total_velocity,max_speed);
                 acceleration = (current.update_position(desired,position_smd,yaw_allowance),current.update_direction(desired_yaw,yaw_smd));
             }
             else if total_velocity < zero_speed_allowance && yaw_difference > yaw_allowance
             {
-                println!("CASE 2: Just updating direction, b/c total_v = {:.2} < {:.2} and yaw {:.2} ~ {:2} -> yaw-delta {:.2} > {:.2} ",total_velocity,zero_speed_allowance,current.yaw.var,desired_yaw,yaw_difference,yaw_allowance);
+                //println!("CASE 2: Just updating direction, b/c total_v = {:.3} < {:.3} and yaw {:.3} ~ {:3} -> yaw-delta {:.3} > {:.3} ",total_velocity,zero_speed_allowance,current.yaw.var,desired_yaw,yaw_difference,yaw_allowance);
                 acceleration.1 = current.update_direction(desired_yaw,yaw_smd);
             }
             else
             {
-                println!("CASE 3: trending speed towards zero, b/c ({:.2} > {:.2})",total_velocity,max_speed);
+                //println!("CASE 3: trending speed towards zero, b/c ({:.3} > {:.3})",total_velocity,zero_speed_allowance);
                 // If direction is right, and angular speed isn't too high, update direction and position
                 acceleration = current.trend_speed_towards_zero(yaw_smd);
             }
@@ -125,11 +121,10 @@ fn main() {
             time = time + DT;
             if time > time_max {break;}
         }
+
+    }
+    println!("End time is: {:.2}",time);
     for a in 0..mesh.len() {
         mesh[a].print();
-    }
-    if time > time_max {break;}
-
-
     }
 }

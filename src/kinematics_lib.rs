@@ -1,18 +1,8 @@
 #![allow(dead_code)]
 extern crate rand;
 extern crate ansi_term;
-//#[path = "pid_lib.rs"] mod pid_lib;
 
-//use self::pid_lib::*;
-//use std::iter::Iterator;
-//use grid_search_lib::ansi_term::Color::Red;
-//use grid_search_lib::ansi_term::Color::Green;
-//use grid_search_lib::ansi_term::Color::Yellow;
-//use grid_search_lib::ansi_term::Color::Blue;
-//use grid_search_lib::ansi_term::Color::Cyan;
-//use std;
 use DT;
-//use thrust_const;
 use std::f32;
 
 #[derive(Clone,Copy)]
@@ -137,7 +127,7 @@ impl State {
             else {error = error - 360f32; }
             yawvardd = (-yaw_smd.c/yaw_smd.m)*self.yaw.vard + (yaw_smd.k/yaw_smd.m)*error;
         }
-        yawvardd = (-yaw_smd.c/yaw_smd.m)*self.yaw.vard + (yaw_smd.k/yaw_smd.m)*error;
+        //yawvardd = (-yaw_smd.c/yaw_smd.m)*self.yaw.vard + (yaw_smd.k/yaw_smd.m)*error;
         if yawvardd.is_nan() == true {yawvardd = 0.0;}
         yawvardd
     }
@@ -200,7 +190,7 @@ impl State {
             }
 
         }
-        println!("Slowing down: ({:.2},{:.2}) for velocity ({:.2},{:.2})",acceleration,self.update_direction(desired_yaw,yaw_smd),self.xaxis.vard,self.yaxis.vard);
+        //println!("Slowing down: ({:.2},{:.2}) for velocity ({:.2},{:.2})",acceleration,self.update_direction(desired_yaw,yaw_smd),self.xaxis.vard,self.yaxis.vard);
         (acceleration,self.update_direction(desired_yaw,yaw_smd))
     }
 
