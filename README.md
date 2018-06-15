@@ -12,7 +12,7 @@ difference between existing and desired states. These produce two acceleration v
 and forward/backward thrust, which are numerically integrated to provide velocity and
 position values in the x-y plane.
 
-<img src="images/20180614_2D_graph.png" width="450" height="350" />
+<img src="/documentation/images/20180614_2D_graph.png" width="450" height="350" />
 
 For more documentation, and updates on the development, please refer to
 the documentation, which is written in Markdown using GitBook.
