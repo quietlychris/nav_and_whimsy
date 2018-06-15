@@ -1,4 +1,5 @@
 Cargo.lock
+waypoints.csv
 run_log.csv
 graph.png
 target/

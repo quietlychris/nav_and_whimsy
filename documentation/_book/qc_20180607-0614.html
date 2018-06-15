@@ -341,7 +341,13 @@ functions (as noted above), but from what I&apos;m looking at, pretty much every
 <p>Here&apos;s an image of what we get as an output, starting at the position (0,0):</p>
 <p><img src="images/20180614_2D_graph.png" width="450" height="350"></p>
 <p>Now that some of that is sorted, I&apos;m going to start working on limited the cargo warnings and command-line outputs. A fair amount of that
-will probably want to be available in the future for debugging, so mostly will just be commented out. </p>
+will probably want to be available in the future for debugging, so mostly will just be commented out.</p>
+<p>Take a look at the documentation, particularly the README.md for the main GitHub page. It&apos;s kind of a wreck.
+Also, it would be a good idea to start writing more things to the log file, including all var/d/dd for x,y, and yaw, plus the desired values
+at each time step. The Python backend would be able to do a bit more, then, and having more data to look at would probably be nice to see
+for future troubleshooting.</p>
+<p>TO_DO: Better logging, keep working on documentation.</p>
+<p>Also, up next: the z-axis. Woo. </p>
 
                                 
                                 </section>
@@ -385,7 +391,7 @@ will probably want to be available in the future for debugging, so mostly will j
     <script>
         var gitbook = gitbook || [];
         gitbook.push(function() {
-            gitbook.page.hasChanged({"page":{"title":"qc_20180607-0614.md","level":"1.3.1","depth":2,"next":{"title":"qc_20180519.md","level":"1.3.2","depth":2,"path":"qc_20180519.md","ref":"qc_20180519.md","articles":[]},"previous":{"title":"Work Log, quietlychris","level":"1.3","depth":1,"path":"COVER_PAGE_qc.md","ref":"COVER_PAGE_qc.md","articles":[{"title":"qc_20180607-0614.md","level":"1.3.1","depth":2,"path":"qc_20180607-0614.md","ref":"qc_20180607-0614.md","articles":[]},{"title":"qc_20180519.md","level":"1.3.2","depth":2,"path":"qc_20180519.md","ref":"qc_20180519.md","articles":[]},{"title":"qc_20180516.md","level":"1.3.3","depth":2,"path":"qc_20180516.md","ref":"qc_20180516.md","articles":[]},{"title":"qc_20180508.md","level":"1.3.4","depth":2,"path":"qc_20180508.md","ref":"qc_20180508.md","articles":[]},{"title":"qc_20180506.md","level":"1.3.5","depth":2,"path":"qc_20180506.md","ref":"qc_20180506.md","articles":[]}]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["livereload"],"pluginsConfig":{"livereload":{},"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"qc_20180607-0614.md","mtime":"2018-06-15T03:28:45.710Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-06-15T03:09:23.097Z"},"basePath":".","book":{"language":""}});
+            gitbook.page.hasChanged({"page":{"title":"qc_20180607-0614.md","level":"1.3.1","depth":2,"next":{"title":"qc_20180519.md","level":"1.3.2","depth":2,"path":"qc_20180519.md","ref":"qc_20180519.md","articles":[]},"previous":{"title":"Work Log, quietlychris","level":"1.3","depth":1,"path":"COVER_PAGE_qc.md","ref":"COVER_PAGE_qc.md","articles":[{"title":"qc_20180607-0614.md","level":"1.3.1","depth":2,"path":"qc_20180607-0614.md","ref":"qc_20180607-0614.md","articles":[]},{"title":"qc_20180519.md","level":"1.3.2","depth":2,"path":"qc_20180519.md","ref":"qc_20180519.md","articles":[]},{"title":"qc_20180516.md","level":"1.3.3","depth":2,"path":"qc_20180516.md","ref":"qc_20180516.md","articles":[]},{"title":"qc_20180508.md","level":"1.3.4","depth":2,"path":"qc_20180508.md","ref":"qc_20180508.md","articles":[]},{"title":"qc_20180506.md","level":"1.3.5","depth":2,"path":"qc_20180506.md","ref":"qc_20180506.md","articles":[]}]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":[],"pluginsConfig":{"highlight":{},"search":{},"lunr":{"maxIndexSize":1000000,"ignoreSpecialCharacters":false},"sharing":{"facebook":true,"twitter":true,"google":false,"weibo":false,"instapaper":false,"vk":false,"all":["facebook","google","twitter","weibo","instapaper"]},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"}},"file":{"path":"qc_20180607-0614.md","mtime":"2018-06-15T03:47:26.237Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2018-06-15T14:18:32.444Z"},"basePath":".","book":{"language":""}});
         });
     </script>
 </div>
@@ -393,10 +399,6 @@ will probably want to be available in the future for debugging, so mostly will j
         
     <script src="gitbook/gitbook.js"></script>
     <script src="gitbook/theme.js"></script>
-    
-        
-        <script src="gitbook/gitbook-plugin-livereload/plugin.js"></script>
-        
     
         
         <script src="gitbook/gitbook-plugin-search/search-engine.js"></script>
