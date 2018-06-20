@@ -2,8 +2,8 @@
 
 The goal of nav_and_whimsy is to be a 3D kinematic movement and localization simulation.
 It is in development, and not ready for use. To use, clone and use ./run.sh to run.
-Key dependencies include an up-to-date version of the Rust package manager 'cargo',
-as well as 'numpy' and 'scipy'.
+Key dependencies include an up-to-date version of the Rust package manager _cargo_,
+as well as _numpy_ and _scipy_.
 
 The following is a graph of the 3D implementation, with full kinematic implementation.
 The control system is implemented using virtual spring-mass-damper systems based on the
@@ -14,16 +14,14 @@ to provide velocity and position values in the three dimensional space, as can b
 in the figure below.
 
 Here, starting from the origin at (0,0,0), the object is directed to move to the following
-points: ( 1.0,  1.0,  1.0)
-        (-1.0,  4.0, -2.0)
-        ( 1.0,  3.0,  3.0)
+points: (1.0,1.0,1.0),  (-1.0,4.0,-2.0), and (1.0,3.0,3.0).
 A point is considered hit when the radial distance betweeen the object's current location and
 the desired position is less than 0.1 meters.
 
 <img src="/documentation/images/3D_movement_062018.png" width="500" height="400" />
 
-For more documentation, and updates on the development, please refer to
-the documentation, which is written in markdown using GitBook.
+For more information, updates on the development, and worklogs, please refer to
+the _documentation_ directory, which is written in markdown using GitBook.
 
 
 Note: Less whimsical than desired.
