@@ -20,7 +20,7 @@ points: ( 1.0,  1.0,  1.0)
 A point is considered hit when the radial distance betweeen the object's current location and
 the desired position is less than 0.1 meters.
 
-<img src="/documentation/images/3D_movement_.png" width="450" height="350" />
+<img src="/documentation/images/3D_movement_062018.png" width="500" height="400" />
 
 For more documentation, and updates on the development, please refer to
 the documentation, which is written in markdown using GitBook.
