@@ -5,6 +5,7 @@
 * [Basic Framework](framework.md)
 
 * [Work Log, quietlychris](COVER_PAGE_qc.md)
+  * [qc_20180622.md](qc_20180622.md)
   * [qc_20180617-0620.md](qc_20180617-0620.md)
   * [qc_20180616.md](qc_20180616.md)
   * [qc_20180615.md](qc_20180615.md)
