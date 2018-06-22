@@ -13,10 +13,10 @@ yaw direction changes, and forward/backward thrust, which are then numerically i
 to provide velocity and position values in the three dimensional space, as can be seen
 in the figure below.
 
-Here, starting from the origin at (0,0,0), the object is directed to move to the following
-points: (1.0,1.0,1.0),  (-1.0,4.0,-2.0), and (1.0,3.0,3.0).
-A point is considered hit when the radial distance betweeen the object's current location and
-the desired position is less than 0.1 meters.
+Here, starting from the origin at (0,0,0), the object is directed to move search each point
+in a grid that is 7m x 7m x 2 m, where a point is located at each integer position. A point
+is considered hit when the radial distance betweeen the object's current location and the
+desired position is less than 0.1 meters.
 
 
 <p align="center"><img src="/documentation/images/full_3D_grid_20180622.png" width="600" height="500" /></p>
