@@ -1,4 +1,4 @@
-# Introduction
+# Introduction to Nav_and_Whimsy
 
 Hi there! This is the documentation for the nav_and_whimsy project, which uses
 the GitBook format. To start, there's some important information:
@@ -22,7 +22,7 @@ the GitBook format. To start, there's some important information:
 #### What Nav_and_Whimsy Was Started For
 This project was started as a preliminary attempt at developing an autonomous
 motion program for robotics in 3D, as a contribution to an organization called
-Robots in Service to the Environment. Now, there are a number of other ways this
+Robots in Service of the Environment. Now, there are a number of other ways this
 could have been done (both in languages, and useful crates that already exist
 in the Rust ecosystem). That being said, I like Rust, and I think it has a lot
 of potential for things that I'm interested in. Based on that, most everything
@@ -32,7 +32,7 @@ core functionality of the program itself. A lot of this is for development of
 my own abilities.
 
 #### What Nav_and_Whimsy Is At The Moment
-At the moment is currently June 2018. This is a side-project, so updates will
+"At the moment" is currently June 2018. This is a side-project, so updates will
 likely be irregular, and a fair amount of development happens without being
 pushed to the GitHub repo. It is _NOT_ ready for use. The core mechanics are
 still being developed, and the visualization back-end is extremely simple.

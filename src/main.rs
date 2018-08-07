@@ -1,6 +1,7 @@
 // cmoran, 2018
 
 mod kinematics_lib;
+mod physics_lib;
 mod tests;
 
 use kinematics_lib::DoF;
@@ -105,9 +106,9 @@ fn main() {
     );
 
     // Creates SMDs for both x,y, and yaw DoF
-    let position_smd = SMD::new(1.0, 0.7, 0.90);
+    let position_smd = SMD::new(1.0, 0.3, 0.90);
     let yaw_smd = SMD::new(0.1, 0.3, 0.7);
-    let z_smd = SMD::new(1.0, 1.0, 0.5);
+    let z_smd = SMD::new(1.0, 0.3, 0.5);
 
     // Sets physical limit parameters for allowances
     let yaw_allowance: f32 = 0.2;
@@ -116,16 +117,17 @@ fn main() {
     let zero_speed_allowance: f32 = 0.01;
     let time_max: f32 = 1800.0;
 
+    // Starts time for simulation loop
     let mut time: f32 = 0.0;
     for counter_1 in 0..mesh.len() {
-        while mesh[counter_1].yon != true {
-            let desired = State::new(
-                DoF::new(mesh[counter_1].x, 0.0, 0.0),
-                DoF::new(mesh[counter_1].y, 0.0, 0.0),
-                DoF::new(mesh[counter_1].z, 0.0, 0.0),
-                DoF::new(0.0, 0.0, 0.0),
-            );
+        let desired = State::new(
+            DoF::new(mesh[counter_1].x, 0.0, 0.0),
+            DoF::new(mesh[counter_1].y, 0.0, 0.0),
+            DoF::new(mesh[counter_1].z, 0.0, 0.0),
+            DoF::new(0.0, 0.0, 0.0),
+        );
 
+        while mesh[counter_1].yon != true {
             let desired_yaw = current.calculate_yaw(desired);
             let total_velocity =
                 (current.xaxis.vard.powf(2.0) + current.yaxis.vard.powf(2.0)).powf(0.5);

@@ -1,6 +1,7 @@
 ###Functionality Framework
 
 This is an overview of the functionality and implementation of nav_and_whimsy.
+
 _Note: This section is unfinished_
 
 This project is being built as a simulation for the efficient movement of a object
