@@ -8,6 +8,8 @@ use kinematics_lib::DoF;
 use kinematics_lib::Point;
 use kinematics_lib::SMD;
 use kinematics_lib::State;
+use physics_lib::Object;
+use physics_lib::Environment;
 //use kinematics_lib::*;
 use std::f32;
 //for writing to log file
@@ -15,6 +17,7 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 
 pub const DT: f32 = 0.01;
+pub const PI: f32 = 3.14159;
 
 fn main() {
     let f = File::create("run_log.csv").expect("Unable to create file");
@@ -97,13 +100,12 @@ fn main() {
         g.write_all(b"\n").expect("couldn't write endline");
     }
 
-    // Sets initial position
-    let mut current = State::new(
-        DoF::new(0.0, 0.0, 0.0),
-        DoF::new(0.0, 0.0, 0.0),
-        DoF::new(0.0, 0.0, 0.0),
-        DoF::new(0.0, 0.0, 0.0),
-    );
+    // Creates the environment, a spherical object, and sets the intial position to the origin
+    let environment = Environment::new(false);
+    let sphere_radius: f32 = 0.1;
+    let sphere_mass: f32 = 1.0;
+    let sphere_surface: f32 = 4.0*PI*(sphere_radius.powf(2.0));
+    let mut sphere = Object::new(sphere_mass,sphere_surface,environment,State::default());
 
     // Creates SMDs for both x,y, and yaw DoF
     let position_smd = SMD::new(1.0, 0.3, 0.90);
@@ -128,89 +130,89 @@ fn main() {
         );
 
         while mesh[counter_1].yon != true {
-            let desired_yaw = current.calculate_yaw(desired);
+            let desired_yaw = sphere.state.calculate_yaw(desired);
             let total_velocity =
-                (current.xaxis.vard.powf(2.0) + current.yaxis.vard.powf(2.0)).powf(0.5);
-            //println!("In main(): desired_yaw vs current: {:.3} {:.3}",desired_yaw,current.yaw.var);
+                (sphere.state.xaxis.vard.powf(2.0) + sphere.state.yaxis.vard.powf(2.0)).powf(0.5);
+            //println!("In main(): desired_yaw vs sphere.state: {:.3} {:.3}",desired_yaw,sphere.state.yaw.var);
             let mut acceleration: (f32, f32, f32) = (0.0, 0.0, 0.0);
-            let yaw_difference = (desired_yaw - current.yaw.var).abs();
+            let yaw_difference = (desired_yaw - sphere.state.yaw.var).abs();
 
             // NEED THREE CASES HERE:
             // In right direction, proceed to target
             // In wrong direction, slow to zero velocity
             // At zero velocity in wrong direction, turn to target
 
-            if yaw_difference < yaw_allowance && current.yaw.vard.abs() < yaw_speed_allowance
+            if yaw_difference < yaw_allowance && sphere.state.yaw.vard.abs() < yaw_speed_allowance
                 && total_velocity < max_speed
             {
-                //println!("CASE 1: Everything's right, b/c yaw {:.3} ~ {:.3} && speed {:.3} < {:.3}", current.yaw.var,desired_yaw,total_velocity,max_speed);
+                //println!("CASE 1: Everything's right, b/c yaw {:.3} ~ {:.3} && speed {:.3} < {:.3}", sphere.state.yaw.var,desired_yaw,total_velocity,max_speed);
                 acceleration = (
-                    current.get_xy_acceleration(desired, position_smd, yaw_allowance),
-                    current.get_z_acceleration(desired, z_smd),
-                    current.get_yaw_acceleration(desired_yaw, yaw_smd),
+                    sphere.state.get_xy_acceleration(desired, position_smd, yaw_allowance),
+                    sphere.state.get_z_acceleration(desired, z_smd),
+                    sphere.state.get_yaw_acceleration(desired_yaw, yaw_smd),
                 );
             } else if total_velocity < zero_speed_allowance && yaw_difference > yaw_allowance {
-                //println!("CASE 2: Just updating direction, b/c total_v = {:.3} < {:.3} and yaw {:.3} ~ {:3} -> yaw-delta {:.3} > {:.3} ",total_velocity,zero_speed_allowance,current.yaw.var,desired_yaw,yaw_difference,yaw_allowance);
-                acceleration.1 = current.get_z_acceleration(desired, z_smd);
-                acceleration.2 = current.get_yaw_acceleration(desired_yaw, yaw_smd);
+                //println!("CASE 2: Just updating direction, b/c total_v = {:.3} < {:.3} and yaw {:.3} ~ {:3} -> yaw-delta {:.3} > {:.3} ",total_velocity,zero_speed_allowance,sphere.state.yaw.var,desired_yaw,yaw_difference,yaw_allowance);
+                acceleration.1 = sphere.state.get_z_acceleration(desired, z_smd);
+                acceleration.2 = sphere.state.get_yaw_acceleration(desired_yaw, yaw_smd);
             } else {
                 //println!("CASE 3: trending speed towards zero, b/c ({:.3} > {:.3})",total_velocity,zero_speed_allowance);
                 // If direction is right, and angular speed isn't too high, update direction and position
-                acceleration = current.trend_speed_towards_zero(yaw_smd);
-                acceleration.1 = current.get_z_acceleration(desired, z_smd);
+                acceleration = sphere.state.trend_speed_towards_zero(yaw_smd);
+                acceleration.1 = sphere.state.get_z_acceleration(desired, z_smd);
             }
 
             // Assigns acceleration values for the various degrees of freedom
-            let xvardd = acceleration.0 * current.yaw.var.to_radians().cos();
-            let yvardd = acceleration.0 * current.yaw.var.to_radians().sin();
+            let xvardd = acceleration.0 * sphere.state.yaw.var.to_radians().cos();
+            let yvardd = acceleration.0 * sphere.state.yaw.var.to_radians().sin();
             let zvardd = acceleration.1;
             let yawvardd = acceleration.2;
             //println!("acceleration tuple: {:?},acceleration);
-            current.kinematic_update(xvardd, yvardd, zvardd, yawvardd);
-            //current.print();
+            sphere.state.kinematic_update(xvardd, yvardd, zvardd, yawvardd);
+            //sphere.state.print();
             {
                 // Writes state data to position file
                 f.write_all(time.to_string().as_bytes())
                     .expect("couldn't write x position");
                 f.write_all(b",").expect("couldn't write comma");
 
-                f.write_all(current.xaxis.var.to_string().as_bytes())
+                f.write_all(sphere.state.xaxis.var.to_string().as_bytes())
                     .expect("couldn't write x position");
                 f.write_all(b",").expect("couldn't write comma");
-                f.write_all(current.xaxis.vard.to_string().as_bytes())
+                f.write_all(sphere.state.xaxis.vard.to_string().as_bytes())
                     .expect("couldn't write x position");
                 f.write_all(b",").expect("couldn't write comma");
-                f.write_all(current.xaxis.vardd.to_string().as_bytes())
+                f.write_all(sphere.state.xaxis.vardd.to_string().as_bytes())
                     .expect("couldn't write x position");
                 f.write_all(b",").expect("couldn't write comma");
 
-                f.write_all(current.yaxis.var.to_string().as_bytes())
+                f.write_all(sphere.state.yaxis.var.to_string().as_bytes())
                     .expect("could write y position");
                 f.write_all(b",").expect("couldn't write comma");
-                f.write_all(current.yaxis.vard.to_string().as_bytes())
+                f.write_all(sphere.state.yaxis.vard.to_string().as_bytes())
                     .expect("could write y position");
                 f.write_all(b",").expect("couldn't write comma");
-                f.write_all(current.yaxis.vardd.to_string().as_bytes())
+                f.write_all(sphere.state.yaxis.vardd.to_string().as_bytes())
                     .expect("could write y position");
                 f.write_all(b",").expect("couldn't write comma");
 
-                f.write_all(current.zaxis.var.to_string().as_bytes())
+                f.write_all(sphere.state.zaxis.var.to_string().as_bytes())
                     .expect("could write z position");
                 f.write_all(b",").expect("couldn't write comma");
-                f.write_all(current.zaxis.vard.to_string().as_bytes())
+                f.write_all(sphere.state.zaxis.vard.to_string().as_bytes())
                     .expect("could write z position");
                 f.write_all(b",").expect("couldn't write comma");
-                f.write_all(current.zaxis.vardd.to_string().as_bytes())
+                f.write_all(sphere.state.zaxis.vardd.to_string().as_bytes())
                     .expect("could write z position");
                 f.write_all(b",").expect("couldn't write comma");
 
-                f.write_all(current.yaw.var.to_string().as_bytes())
+                f.write_all(sphere.state.yaw.var.to_string().as_bytes())
                     .expect("could write yaw var");
                 f.write_all(b",").expect("couldn't write comma");
-                f.write_all(current.yaw.vard.to_string().as_bytes())
+                f.write_all(sphere.state.yaw.vard.to_string().as_bytes())
                     .expect("could write yaw vard");
                 f.write_all(b",").expect("couldn't write comma");
-                f.write_all(current.yaw.vardd.to_string().as_bytes())
+                f.write_all(sphere.state.yaw.vardd.to_string().as_bytes())
                     .expect("could write yaw vardd");
                 f.write_all(b"\n").expect("couldn't write endline");
             }
@@ -218,9 +220,9 @@ fn main() {
             let min_distance: f32 = 0.1;
             for counter_2 in 0..mesh.len() {
                 // If close enough to a mesh point, marks that point as true
-                if (current.xaxis.var - mesh[counter_2].x).abs() < min_distance
-                    && (current.yaxis.var - mesh[counter_2].y).abs() < min_distance
-                    && (current.zaxis.var - mesh[counter_2].z).abs() < min_distance
+                if (sphere.state.xaxis.var - mesh[counter_2].x).abs() < min_distance
+                    && (sphere.state.yaxis.var - mesh[counter_2].y).abs() < min_distance
+                    && (sphere.state.zaxis.var - mesh[counter_2].z).abs() < min_distance
                     && mesh[counter_2].yon != true
                 {
                     mesh[counter_2].make_true();
