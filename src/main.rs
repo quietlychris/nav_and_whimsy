@@ -2,6 +2,7 @@
 
 mod kinematics_lib;
 mod physics_lib;
+mod algorithms_lib;
 mod tests;
 
 use kinematics_lib::DoF;
@@ -10,7 +11,7 @@ use kinematics_lib::SMD;
 use kinematics_lib::State;
 use physics_lib::Object;
 use physics_lib::Environment;
-//use kinematics_lib::*;
+
 use std::f32;
 //for writing to log file
 use std::fs::File;
@@ -24,6 +25,9 @@ fn main() {
     let mut f = BufWriter::new(f);
     let g = File::create("waypoints.csv").expect("Unable to create file");
     let mut g = BufWriter::new(g);
+    //let path = Path::new("waypoints.csv");
+    //let mut writer = Writer::from_file(&path);
+
     {
         // Writes headers to position file
         f.write_all(b"time")
@@ -71,6 +75,21 @@ fn main() {
         f.write_all(b"\n").expect("couldn't write comma");
     }
 
+    /*let mut file_header = Vec::new();
+    values.push(time);
+    values.push(xaxis.var);
+    values.push(xaxis.vard);
+    values.push(xaxis.vardd);
+    values.push(yaxis.var);
+    values.push(yaxis.vard);
+    values.push(yaxis.vardd);
+    values.push(zaxis.var);
+    values.push(zaxis.vard);
+    values.push(zaxis.vardd);
+    values.push(yaw.var);
+    values.push(yaw.vard);
+    values.push(yaw.vardd);*/
+
     // Creates an array of points to be searched
     let mut mesh: Vec<Point> = Vec::new();
     for z in -1isize..2isize {
@@ -98,6 +117,22 @@ fn main() {
         g.write_all(mesh[a].z.to_string().as_bytes())
             .expect("could write z position for waypoint");
         g.write_all(b"\n").expect("couldn't write endline");
+    }
+
+    let mut list: Vec<ListPoint> = Vec::new(); // Creates a new vector of points w/scores
+    for b in 0..mesh.len() {
+        let list_point = calculate_score(mesh[b],desired); // Calulates score of each point and returns ListPoint object
+        list.push(list_point); // Adds ListPoint object to the ListPoint Vector
+    }
+
+    let mut min = list[0].score; // Sets the minimum value of the ListPoint vector score
+    let mut order_vec: Vec<usize> = Vec::new() // Creates a new vector in which to the put the min-max ordered list of scored points
+    for c in 0..list.len() {
+        if list[c].score < min { // If the score ofa point is below that of the intitial setting
+            min = list[c].score; // Set that point as having the minimum value
+            order_vec.push(c); // Add that ListPoint's index to the ordered list of scored points
+            list.remove(c); // Remove that ListPoint from the list
+        }
     }
 
     // Creates the environment, a spherical object, and sets the intial position to the origin

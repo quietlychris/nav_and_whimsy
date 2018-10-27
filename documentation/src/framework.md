@@ -1,4 +1,4 @@
-###Functionality Framework
+### Functionality Framework
 
 This is an overview of the functionality and implementation of nav_and_whimsy.
 

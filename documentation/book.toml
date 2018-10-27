@@ -1,0 +1,8 @@
+[book]
+authors = ["quietlychris"]
+multilingual = false
+src = "src"
+title = "nav_and_whimsy_docs"
+
+[build]
+create-missing = true

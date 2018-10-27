@@ -1,7 +1,7 @@
 # Introduction to Nav_and_Whimsy
 
 Hi there! This is the documentation for the nav_and_whimsy project, which uses
-the GitBook format. To start, there's some important information:
+the *mdbook* format. To start, there's some important information:
 - __UNSTABLE__. Seriously. Things are broken and seriously changed about
   every time they're touched.
 - The documentation is open to change. The primary structure is to have

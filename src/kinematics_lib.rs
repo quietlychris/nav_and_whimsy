@@ -11,11 +11,13 @@ pub struct DoF {
     pub vard: f32,
     pub vardd: f32,
 }
+
 #[derive(Clone, Copy)]
 pub struct PIDSet {
     pub pre_error: f32,
     pub integral: f32,
 }
+
 #[derive(Clone, Copy)]
 pub struct PIDController {
     pub input: DoF,
@@ -25,6 +27,7 @@ pub struct PIDController {
     kd: f32,
     rmv: PIDSet,
 }
+
 #[derive(Clone, Copy)]
 pub struct State {
     pub xaxis: DoF,
@@ -32,13 +35,15 @@ pub struct State {
     pub zaxis: DoF,
     pub yaw: DoF,
 }
+
 #[derive(Clone, Copy)]
 pub struct Point {
     pub x: f32,
     pub y: f32,
     pub z: f32,
-    pub yon: bool,
+    pub yon: bool
 }
+
 #[derive(Clone, Copy)]
 pub struct SMD {
     pub error: f32,
