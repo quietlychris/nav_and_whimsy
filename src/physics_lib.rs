@@ -3,8 +3,8 @@
 use crate::DT;
 use std::f32;
 
-use crate::controls_lib::*;
 use crate::controls_lib::ControlParams;
+use crate::controls_lib::*;
 
 #[derive(Clone, Copy)]
 pub struct Object {
@@ -90,20 +90,33 @@ impl Object {
         {
             //println!("CASE 1: Everything's right, b/c yaw {:.3} ~ {:.3} && speed {:.3} < {:.3}", self.state.yaw.var,desired_yaw,total_velocity,self.ctrlparams.max_speed);
             acceleration = (
+                self.state.get_xy_acceleration(
+                    desired,
+                    self.ctrlparams.position_smd,
+                    self.ctrlparams.yaw_allowance,
+                ),
                 self.state
-                    .get_xy_acceleration(desired, self.ctrlparams.position_smd, self.ctrlparams.yaw_allowance),
-                self.state.get_z_acceleration(desired, self.ctrlparams.z_smd),
-                self.state.get_yaw_acceleration(desired_yaw, self.ctrlparams.yaw_smd),
+                    .get_z_acceleration(desired, self.ctrlparams.z_smd),
+                self.state
+                    .get_yaw_acceleration(desired_yaw, self.ctrlparams.yaw_smd),
             );
-        } else if total_velocity < self.ctrlparams.zero_speed_allowance && yaw_difference > self.ctrlparams.yaw_allowance {
+        } else if total_velocity < self.ctrlparams.zero_speed_allowance
+            && yaw_difference > self.ctrlparams.yaw_allowance
+        {
             //println!("CASE 2: Just updating direction, b/c total_v = {:.3} < {:.3} and yaw {:.3} ~ {:3} -> yaw-delta {:.3} > {:.3} ",total_velocity,self.ctrlparams.zero_speed_allowance,self.state.yaw.var,desired_yaw,yaw_difference,self.ctrlparams.yaw_allowance);
-            acceleration.1 = self.state.get_z_acceleration(desired, self.ctrlparams.z_smd);
-            acceleration.2 = self.state.get_yaw_acceleration(desired_yaw, self.ctrlparams.yaw_smd);
+            acceleration.1 = self
+                .state
+                .get_z_acceleration(desired, self.ctrlparams.z_smd);
+            acceleration.2 = self
+                .state
+                .get_yaw_acceleration(desired_yaw, self.ctrlparams.yaw_smd);
         } else {
             //println!("CASE 3: trending speed towards zero, b/c ({:.3} > {:.3})",total_velocity,self.ctrlparams.zero_speed_allowance);
             // If direction is right, and angular speed isn't too high, update direction and position
             acceleration = self.state.trend_speed_towards_zero(self.ctrlparams.yaw_smd);
-            acceleration.1 = self.state.get_z_acceleration(desired, self.ctrlparams.z_smd);
+            acceleration.1 = self
+                .state
+                .get_z_acceleration(desired, self.ctrlparams.z_smd);
         }
 
         // Assigns acceleration values for the various degrees of freedom

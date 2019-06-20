@@ -3,7 +3,6 @@
 use std::f32;
 
 use crate::controls_lib::*;
-use crate::physics_lib::*;
 
 // Since we're currently just using the location of the point to calculate score, using Point
 // might be fine, but if we eventually want to use direct parameters of the Object like

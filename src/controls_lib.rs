@@ -222,7 +222,7 @@ impl State {
     pub fn get_z_acceleration(&self, desired: State, smd: SMD) -> f32 {
         //let max_z_accel: f32 = 3.0;
         let z_error = desired.zaxis.var - self.zaxis.var;
-        let mut acceleration = (-smd.c / smd.m) * (self.zaxis.vard) + (smd.k / smd.m) * z_error;
+        let acceleration = (-smd.c / smd.m) * (self.zaxis.vard) + (smd.k / smd.m) * z_error;
         //if acceleration > max_z_accel {acceleration = max_z_accel};
         acceleration
     }

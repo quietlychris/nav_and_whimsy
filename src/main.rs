@@ -5,13 +5,11 @@ mod controls_lib;
 mod physics_lib;
 mod tests;
 
-//use crate::controls_lib::DoF;
-use crate::algorithms_lib::ListPoint;
+use crate::controls_lib::ControlParams;
 use crate::controls_lib::DoF;
 use crate::controls_lib::Point;
 use crate::controls_lib::State;
 use crate::controls_lib::SMD;
-use crate::controls_lib::ControlParams;
 use crate::physics_lib::Environment;
 use crate::physics_lib::Object;
 
@@ -45,7 +43,6 @@ fn main() {
             }
         }
     }
-
     /*
     mesh.push(Point::new(0.0, 0.0, 1.0, false));
     mesh.push(Point::new(-1.0, 4.0, -2.0, false));
@@ -64,7 +61,7 @@ fn main() {
             mesh[a].z.to_string()
         );
         println!("{}", xyz_pos);
-        g.write_all(xyz_pos.as_bytes());
+        g.write_all(xyz_pos.as_bytes()).expect("Couldn't write formatted waypoint data to file");
     }
 
     // Creates the environment, a spherical object, and sets the intial position to the origin
@@ -73,6 +70,8 @@ fn main() {
     let sphere_mass: f32 = 1.0;
     let sphere_surface: f32 = 4.0 * PI * (sphere_radius.powf(2.0));
 
+    // Creates basis for controls laws for specified Object, as well has sets control limits for various physical constraints
+    // Builds ControlParams struct before the Object struct so it can be included
     let control_params = ControlParams {
         position_smd: SMD::new(1.0, 0.3, 0.90),
         yaw_smd: SMD::new(0.1, 0.3, 0.7),
@@ -82,17 +81,6 @@ fn main() {
         max_speed: 0.5,
         zero_speed_allowance: 0.01,
     };
-    // Creates SMDs for both x,y, and yaw DoF
-    // **** TO_DO: Can't compile at the moment; need to find a way to apply these characteristics to the Object in
-    // a way that is accessible the go_to() function but also defines them in main but can abstract them after
-    /*let position_smd = SMD::new(1.0, 0.3, 0.90);
-    let yaw_smd = SMD::new(0.1, 0.3, 0.7);
-    let z_smd = SMD::new(1.0, 0.3, 0.5);
-    // Sets physical limit parameters for allowances
-    let yaw_allowance: f32 = 0.2;
-    let yaw_speed_allowance: f32 = 3.0;
-    let max_speed: f32 = 0.5;
-    let zero_speed_allowance: f32 = 0.01;*/
 
     let mut sphere = Object::new(
         sphere_mass,
@@ -118,49 +106,23 @@ fn main() {
             sphere.go_to(desired);
             {
                 // Writes state data to position file
-                f.write_all(time.to_string().as_bytes())
-                    .expect("couldn't write x position");
-                f.write_all(b",").expect("couldn't write comma");
-
-                f.write_all(sphere.state.xaxis.var.to_string().as_bytes())
-                    .expect("couldn't write x position");
-                f.write_all(b",").expect("couldn't write comma");
-                f.write_all(sphere.state.xaxis.vard.to_string().as_bytes())
-                    .expect("couldn't write x position");
-                f.write_all(b",").expect("couldn't write comma");
-                f.write_all(sphere.state.xaxis.vardd.to_string().as_bytes())
-                    .expect("couldn't write x position");
-                f.write_all(b",").expect("couldn't write comma");
-
-                f.write_all(sphere.state.yaxis.var.to_string().as_bytes())
-                    .expect("could write y position");
-                f.write_all(b",").expect("couldn't write comma");
-                f.write_all(sphere.state.yaxis.vard.to_string().as_bytes())
-                    .expect("could write y position");
-                f.write_all(b",").expect("couldn't write comma");
-                f.write_all(sphere.state.yaxis.vardd.to_string().as_bytes())
-                    .expect("could write y position");
-                f.write_all(b",").expect("couldn't write comma");
-
-                f.write_all(sphere.state.zaxis.var.to_string().as_bytes())
-                    .expect("could write z position");
-                f.write_all(b",").expect("couldn't write comma");
-                f.write_all(sphere.state.zaxis.vard.to_string().as_bytes())
-                    .expect("could write z position");
-                f.write_all(b",").expect("couldn't write comma");
-                f.write_all(sphere.state.zaxis.vardd.to_string().as_bytes())
-                    .expect("could write z position");
-                f.write_all(b",").expect("couldn't write comma");
-
-                f.write_all(sphere.state.yaw.var.to_string().as_bytes())
-                    .expect("could write yaw var");
-                f.write_all(b",").expect("couldn't write comma");
-                f.write_all(sphere.state.yaw.vard.to_string().as_bytes())
-                    .expect("could write yaw vard");
-                f.write_all(b",").expect("couldn't write comma");
-                f.write_all(sphere.state.yaw.vardd.to_string().as_bytes())
-                    .expect("could write yaw vardd");
-                f.write_all(b"\n").expect("couldn't write endline");
+                let data_string = format!(
+                    "{},{},{},{},{},{},{},{},{},{},{},{},{}\n",
+                    time.to_string(),
+                    sphere.state.xaxis.var.to_string(),
+                    sphere.state.xaxis.vard.to_string(),
+                    sphere.state.xaxis.vardd.to_string(),
+                    sphere.state.yaxis.var.to_string(),
+                    sphere.state.yaxis.vard.to_string(),
+                    sphere.state.yaxis.vardd.to_string(),
+                    sphere.state.zaxis.var.to_string(),
+                    sphere.state.zaxis.vard.to_string(),
+                    sphere.state.zaxis.vardd.to_string(),
+                    sphere.state.yaw.var.to_string(),
+                    sphere.state.yaw.vard.to_string(),
+                    sphere.state.yaw.vardd.to_string()
+                );
+                f.write_all(data_string.as_bytes()).expect("Could write data string with Object State data to file");
             }
 
             let min_distance: f32 = 0.1;
