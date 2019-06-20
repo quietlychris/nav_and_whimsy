@@ -2,8 +2,19 @@
 extern crate ansi_term;
 extern crate rand;
 
-use DT;
+use crate::DT;
 use std::f32;
+
+#[derive(Clone, Copy)]
+pub struct ControlParams {
+    pub position_smd: SMD,
+    pub yaw_smd: SMD,
+    pub z_smd: SMD,
+    pub yaw_allowance: f32,
+    pub yaw_speed_allowance: f32,
+    pub max_speed: f32,
+    pub zero_speed_allowance: f32,
+}
 
 #[derive(Clone, Copy)]
 pub struct DoF {
@@ -41,7 +52,7 @@ pub struct Point {
     pub x: f32,
     pub y: f32,
     pub z: f32,
-    pub yon: bool
+    pub yon: bool,
 }
 
 #[derive(Clone, Copy)]

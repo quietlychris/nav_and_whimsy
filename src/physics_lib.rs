@@ -1,15 +1,17 @@
 #![allow(dead_code)]
 
-use DT;
+use crate::DT;
 use std::f32;
 
-use kinematics_lib::*;
+use crate::controls_lib::*;
+use crate::controls_lib::ControlParams;
 
 #[derive(Clone, Copy)]
 pub struct Object {
     pub mass: f32,
     pub area: f32,
     pub environment: Environment,
+    pub ctrlparams: ControlParams,
     pub state: State,
 }
 
@@ -19,10 +21,17 @@ pub struct Environment {
 }
 
 impl Object {
-    pub fn new(mass: f32, area: f32, environment: Environment, state: State) -> Self {
+    pub fn new(
+        mass: f32,
+        area: f32,
+        ctrlparams: ControlParams,
+        environment: Environment,
+        state: State,
+    ) -> Self {
         Object {
             mass: mass,
             area: area,
+            ctrlparams: ctrlparams,
             environment: environment,
             state: state,
         }
@@ -59,6 +68,53 @@ impl Object {
         // TO_DO: Error handling for this NaN requires desired, but I'm not sure I want to pass another variable to this functions
         // let desired_yaw = self.calculate_yaw(desired);
         //if self.yaw.var.is_nan() == true { println!("State::kinematic_update() : self.yaw.var.is_nan() == true"); self.yaw.var = desired_yaw;}
+    }
+
+    // Uses control laws to apply acclerations to Object (actual physics are run in the 'kinematic_update' function)
+    pub fn go_to(&mut self, desired: State) {
+        let desired_yaw = self.state.calculate_yaw(desired);
+        let total_velocity =
+            (self.state.xaxis.vard.powf(2.0) + self.state.yaxis.vard.powf(2.0)).powf(0.5);
+        //println!("In main(): desired_yaw vs self.state: {:.3} {:.3}",desired_yaw,self.state.yaw.var);
+        let mut acceleration: (f32, f32, f32) = (0.0, 0.0, 0.0);
+        let yaw_difference = (desired_yaw - self.state.yaw.var).abs();
+
+        // NEED THREE CASES HERE:
+        // In right direction, proceed to target
+        // In wrong direction, slow to zero velocity
+        // At zero velocity in wrong direction, turn to target
+
+        if yaw_difference < self.ctrlparams.yaw_allowance
+            && self.state.yaw.vard.abs() < self.ctrlparams.yaw_speed_allowance
+            && total_velocity < self.ctrlparams.max_speed
+        {
+            //println!("CASE 1: Everything's right, b/c yaw {:.3} ~ {:.3} && speed {:.3} < {:.3}", self.state.yaw.var,desired_yaw,total_velocity,self.ctrlparams.max_speed);
+            acceleration = (
+                self.state
+                    .get_xy_acceleration(desired, self.ctrlparams.position_smd, self.ctrlparams.yaw_allowance),
+                self.state.get_z_acceleration(desired, self.ctrlparams.z_smd),
+                self.state.get_yaw_acceleration(desired_yaw, self.ctrlparams.yaw_smd),
+            );
+        } else if total_velocity < self.ctrlparams.zero_speed_allowance && yaw_difference > self.ctrlparams.yaw_allowance {
+            //println!("CASE 2: Just updating direction, b/c total_v = {:.3} < {:.3} and yaw {:.3} ~ {:3} -> yaw-delta {:.3} > {:.3} ",total_velocity,self.ctrlparams.zero_speed_allowance,self.state.yaw.var,desired_yaw,yaw_difference,self.ctrlparams.yaw_allowance);
+            acceleration.1 = self.state.get_z_acceleration(desired, self.ctrlparams.z_smd);
+            acceleration.2 = self.state.get_yaw_acceleration(desired_yaw, self.ctrlparams.yaw_smd);
+        } else {
+            //println!("CASE 3: trending speed towards zero, b/c ({:.3} > {:.3})",total_velocity,self.ctrlparams.zero_speed_allowance);
+            // If direction is right, and angular speed isn't too high, update direction and position
+            acceleration = self.state.trend_speed_towards_zero(self.ctrlparams.yaw_smd);
+            acceleration.1 = self.state.get_z_acceleration(desired, self.ctrlparams.z_smd);
+        }
+
+        // Assigns acceleration values for the various degrees of freedom
+        let xvardd = acceleration.0 * self.state.yaw.var.to_radians().cos();
+        let yvardd = acceleration.0 * self.state.yaw.var.to_radians().sin();
+        let zvardd = acceleration.1;
+        let yawvardd = acceleration.2;
+        //println!("acceleration tuple: {:?},acceleration);
+        self.state
+            .kinematic_update(xvardd, yvardd, zvardd, yawvardd);
+        //self.state.print();
     }
 }
 

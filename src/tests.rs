@@ -4,11 +4,11 @@ mod tests {
     // Note: can put #[ignore] underneath #[test] to stop that test from running
     // Running with '$ cargo test -- --nocapture' will send command-line output even if test passes
 
-    use DT;
-    use kinematics_lib::*;
+    use crate::kinematics_lib::*;
     use std::f32;
     use std::fs::File;
     use std::io::{BufWriter, Write};
+    use DT;
 
     #[test]
     fn sign_check_test() {
@@ -288,9 +288,10 @@ mod tests {
                 time = time + DT;
             }
 
-            let radius = (current.xaxis.var.powf(2.0) + current.yaxis.var.powf(2.0)
+            let radius = (current.xaxis.var.powf(2.0)
+                + current.yaxis.var.powf(2.0)
                 + current.zaxis.var.powf(2.0))
-                .powf(0.5);
+            .powf(0.5);
             print!("desired is: \n");
             desired.print();
             println!(
@@ -330,11 +331,14 @@ mod tests {
             let yvardd = dir_vector[a].1;
             let zvardd = dir_vector[a].2;
             println!("x-y acceleration: [{},{},{}]", xvardd, yvardd, zvardd);
-            let answer_x = current.xaxis.var + current.xaxis.vard * time_limit
+            let answer_x = current.xaxis.var
+                + current.xaxis.vard * time_limit
                 + 0.5 * xvardd * (time_limit.powf(2.0));
-            let answer_y = current.yaxis.var + current.yaxis.vard * time_limit
+            let answer_y = current.yaxis.var
+                + current.yaxis.vard * time_limit
                 + 0.5 * yvardd * (time_limit.powf(2.0));
-            let answer_z = current.zaxis.var + current.zaxis.vard * time_limit
+            let answer_z = current.zaxis.var
+                + current.zaxis.vard * time_limit
                 + 0.5 * zvardd * (time_limit.powf(2.0));
             while time < time_limit {
                 // Based on the common kinematic equation x = x_o + v*t + .5*a*t^2
@@ -472,7 +476,8 @@ mod tests {
             // In wrong direction, slow to zero velocity
             // At zero velocity in wrong direction, turn to target
 
-            if yaw_difference < yaw_allowance && current.yaw.vard.abs() < yaw_speed_allowance
+            if yaw_difference < yaw_allowance
+                && current.yaw.vard.abs() < yaw_speed_allowance
                 && total_velocity < max_speed
             {
                 //println!("CASE 1: Everything's right, b/c yaw {:.3} ~ {:.3} && speed {:.3} < {:.3}", current.yaw.var,desired_yaw,total_velocity,max_speed);
@@ -548,16 +553,16 @@ mod tests {
             }
 
             /*let min_distance: f32 = 0.1;
-                for counter_2 in 0..mesh.len() {
-                    // If close enough to a mesh point, marks that point as true
-                    if (current.xaxis.var - mesh[counter_2].x).abs() < min_distance
-                        && (current.yaxis.var - mesh[counter_2].y).abs() < min_distance
-                        && (current.zaxis.var - mesh[counter_2].z).abs() < min_distance
-                        && mesh[counter_2].yon != true
-                    {
-                        mesh[counter_2].make_true();
-                    }
-                }*/
+            for counter_2 in 0..mesh.len() {
+                // If close enough to a mesh point, marks that point as true
+                if (current.xaxis.var - mesh[counter_2].x).abs() < min_distance
+                    && (current.yaxis.var - mesh[counter_2].y).abs() < min_distance
+                    && (current.zaxis.var - mesh[counter_2].z).abs() < min_distance
+                    && mesh[counter_2].yon != true
+                {
+                    mesh[counter_2].make_true();
+                }
+            }*/
 
             time = time + DT;
             desired.print();
@@ -684,7 +689,8 @@ mod tests {
                 // In wrong direction, slow to zero velocity
                 // At zero velocity in wrong direction, turn to target
 
-                if yaw_difference < yaw_allowance && current.yaw.vard.abs() < yaw_speed_allowance
+                if yaw_difference < yaw_allowance
+                    && current.yaw.vard.abs() < yaw_speed_allowance
                     && total_velocity < max_speed
                 {
                     //println!("CASE 1: Everything's right, b/c yaw {:.3} ~ {:.3} && speed {:.3} < {:.3}", current.yaw.var,desired_yaw,total_velocity,max_speed);
