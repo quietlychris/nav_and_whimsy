@@ -13,6 +13,7 @@ use std::f32;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
+// Time step the kinematics of the simulation runs at
 pub const DT: f32 = 0.01;
 
 fn main() {
