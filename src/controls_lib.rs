@@ -2,14 +2,19 @@
 extern crate ansi_term;
 extern crate rand;
 
-use DT;
+use crate::physics_lib::{DoF, State};
+use crate::DT;
 use std::f32;
 
 #[derive(Clone, Copy)]
-pub struct DoF {
-    pub var: f32,
-    pub vard: f32,
-    pub vardd: f32,
+pub struct ControlParams {
+    pub position_smd: SMD,
+    pub yaw_smd: SMD,
+    pub z_smd: SMD,
+    pub yaw_allowance: f32,
+    pub yaw_speed_allowance: f32,
+    pub max_speed: f32,
+    pub zero_speed_allowance: f32,
 }
 
 #[derive(Clone, Copy)]
@@ -29,19 +34,11 @@ pub struct PIDController {
 }
 
 #[derive(Clone, Copy)]
-pub struct State {
-    pub xaxis: DoF,
-    pub yaxis: DoF,
-    pub zaxis: DoF,
-    pub yaw: DoF,
-}
-
-#[derive(Clone, Copy)]
 pub struct Point {
     pub x: f32,
     pub y: f32,
     pub z: f32,
-    pub yon: bool
+    pub yon: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -58,15 +55,19 @@ impl State {
             xaxis: DoF::default(),
             yaxis: DoF::default(),
             zaxis: DoF::default(),
+            roll: DoF::default(),
+            pitch: DoF::default(),
             yaw: DoF::default(),
         }
     }
 
-    pub fn new(xaxis: DoF, yaxis: DoF, zaxis: DoF, yaw: DoF) -> Self {
+    pub fn new(xaxis: DoF, yaxis: DoF, zaxis: DoF, roll: DoF, pitch: DoF, yaw: DoF) -> Self {
         State {
             xaxis: xaxis,
             yaxis: yaxis,
             zaxis: zaxis,
+            roll: roll,
+            pitch: pitch,
             yaw: yaw,
         }
     }
@@ -211,7 +212,7 @@ impl State {
     pub fn get_z_acceleration(&self, desired: State, smd: SMD) -> f32 {
         //let max_z_accel: f32 = 3.0;
         let z_error = desired.zaxis.var - self.zaxis.var;
-        let mut acceleration = (-smd.c / smd.m) * (self.zaxis.vard) + (smd.k / smd.m) * z_error;
+        let acceleration = (-smd.c / smd.m) * (self.zaxis.vard) + (smd.k / smd.m) * z_error;
         //if acceleration > max_z_accel {acceleration = max_z_accel};
         acceleration
     }
@@ -259,36 +260,6 @@ impl State {
             0.0,
             self.get_yaw_acceleration(desired_yaw, yaw_smd),
         )
-    }
-
-    pub fn kinematic_update(&mut self, xvardd: f32, yvardd: f32, zvardd: f32, yawvardd: f32) {
-        // Let's not use the DoF kinematic_update() function quite yet
-
-        self.xaxis.vardd = xvardd;
-        self.xaxis.vard = self.xaxis.vard + self.xaxis.vardd * DT;
-        self.xaxis.var = self.xaxis.var + self.xaxis.vard * DT;
-
-        self.yaxis.vardd = yvardd;
-        self.yaxis.vard = self.yaxis.vard + self.yaxis.vardd * DT;
-        self.yaxis.var = self.yaxis.var + self.yaxis.vard * DT;
-
-        self.zaxis.vardd = zvardd;
-        self.zaxis.vard = self.zaxis.vard + self.zaxis.vardd * DT;
-        self.zaxis.var = self.zaxis.var + self.zaxis.vard * DT;
-
-        self.yaw.vardd = yawvardd;
-        self.yaw.vard = self.yaw.vard + self.yaw.vardd * DT;
-        self.yaw.var = self.yaw.var + self.yaw.vard * DT;
-
-        if self.yaw.var > 180f32 {
-            self.yaw.var = self.yaw.var - 360f32;
-        }
-        if self.yaw.var < -180f32 {
-            self.yaw.var = self.yaw.var + 360f32;
-        }
-        // TO_DO: Error handling for this NaN requires desired, but I'm not sure I want to pass another variable to this functions
-        // let desired_yaw = self.calculate_yaw(desired);
-        //if self.yaw.var.is_nan() == true { println!("State::kinematic_update() : self.yaw.var.is_nan() == true"); self.yaw.var = desired_yaw;}
     }
 
     pub fn print(&self) {
