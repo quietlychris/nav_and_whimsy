@@ -7,6 +7,23 @@ use crate::controls_lib::ControlParams;
 use crate::controls_lib::*;
 
 #[derive(Clone, Copy)]
+pub struct DoF {
+    pub var: f32,
+    pub vard: f32,
+    pub vardd: f32,
+}
+
+#[derive(Clone, Copy)]
+pub struct State {
+    pub xaxis: DoF,
+    pub yaxis: DoF,
+    pub zaxis: DoF,
+    pub roll: DoF,
+    pub pitch: DoF,
+    pub yaw: DoF,
+}
+
+#[derive(Clone, Copy)]
 pub struct Object {
     pub mass: f32,
     pub area: f32,
@@ -37,17 +54,28 @@ impl Object {
         }
     }
 
-    pub fn kinematic_update(&mut self, xvardd: f32, yvardd: f32, zvardd: f32, yawvardd: f32) {
+    pub fn kinematic_update(
+        &mut self,
+        xvardd: f32,
+        yvardd: f32,
+        zvardd: f32,
+        rollvardd: f32,
+        pitchvardd: f32,
+        yawvardd: f32,
+    ) {
         // Let's not use the DoF kinematic_update() function quite yet
 
+        // X-Axis
         self.state.xaxis.vardd = xvardd;
         self.state.xaxis.vard = self.state.xaxis.vard + self.state.xaxis.vardd * DT;
         self.state.xaxis.var = self.state.xaxis.var + self.state.xaxis.vard * DT;
 
+        // Y-Axis
         self.state.yaxis.vardd = yvardd;
         self.state.yaxis.vard = self.state.yaxis.vard + self.state.yaxis.vardd * DT;
         self.state.yaxis.var = self.state.yaxis.var + self.state.yaxis.vard * DT;
 
+        // Z-Axis, with potential for gravity to be considered
         self.state.zaxis.vardd = zvardd;
         if self.environment.gravity == true {
             self.state.zaxis.vardd = self.state.zaxis.vardd - 9.81f32;
@@ -55,6 +83,8 @@ impl Object {
         self.state.zaxis.vard = self.state.zaxis.vard + self.state.zaxis.vardd * DT;
         self.state.zaxis.var = self.state.zaxis.var + self.state.zaxis.vard * DT;
 
+        // Yaw
+        // Normally would have put roll, pitch first, but yaw was implemented first and is considered much more stable
         self.state.yaw.vardd = yawvardd;
         self.state.yaw.vard = self.state.yaw.vard + self.state.yaw.vardd * DT;
         self.state.yaw.var = self.state.yaw.var + self.state.yaw.vard * DT;
@@ -68,6 +98,30 @@ impl Object {
         // TO_DO: Error handling for this NaN requires desired, but I'm not sure I want to pass another variable to this functions
         // let desired_yaw = self.calculate_yaw(desired);
         //if self.yaw.var.is_nan() == true { println!("State::kinematic_update() : self.yaw.var.is_nan() == true"); self.yaw.var = desired_yaw;}
+
+        // Roll
+        self.state.roll.vardd = rollvardd;
+        self.state.roll.vard = self.state.roll.vard + self.state.roll.vardd * DT;
+        self.state.roll.var = self.state.roll.var + self.state.roll.vard * DT;
+
+        if self.state.roll.var > 180f32 {
+            self.state.roll.var = self.state.roll.var - 360f32;
+        }
+        if self.state.roll.var < -180f32 {
+            self.state.roll.var = self.state.roll.var + 360f32;
+        }
+
+        // Pitch
+        self.state.pitch.vardd = pitchvardd;
+        self.state.pitch.vard = self.state.pitch.vard + self.state.pitch.vardd * DT;
+        self.state.pitch.var = self.state.pitch.var + self.state.pitch.vard * DT;
+
+        if self.state.pitch.var > 180f32 {
+            self.state.pitch.var = self.state.pitch.var - 360f32;
+        }
+        if self.state.pitch.var < -180f32 {
+            self.state.pitch.var = self.state.pitch.var + 360f32;
+        }
     }
 
     // Uses control laws to apply acclerations to Object (actual physics are run in the 'kinematic_update' function)
@@ -123,10 +177,12 @@ impl Object {
         let xvardd = acceleration.0 * self.state.yaw.var.to_radians().cos();
         let yvardd = acceleration.0 * self.state.yaw.var.to_radians().sin();
         let zvardd = acceleration.1;
+        let rollvardd = 0.0;
+        let pitchvardd = 0.0;
         let yawvardd = acceleration.2;
+
         //println!("acceleration tuple: {:?},acceleration);
-        self.state
-            .kinematic_update(xvardd, yvardd, zvardd, yawvardd);
+        self.kinematic_update(xvardd, yvardd, zvardd, rollvardd, pitchvardd, yawvardd);
         //self.state.print();
     }
 }

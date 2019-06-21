@@ -4,19 +4,12 @@ This is an overview of the functionality and implementation of nav_and_whimsy.
 
 _Note: This section is unfinished_
 
-This project is being built as a simulation for the efficient movement of a object
-in three-dimensional space, such that the the position of this object can be planned
-and mapped such that it can hit various arbitrarily placed waypoints.
+This project is being built as a simulation for the efficient movement of a object in three-dimensional space, such that the the position of this object can be planned and mapped such that it can hit various arbitrarily placed waypoints.
 
 #### Kinematics
-First, it's important to note the degrees of freedom. The particular control scheme
-allows for indepdent control of up/down (z-axis), forward/backwards (xy plane position),
-and yaw (xy plane direction).
+First, it's important to note the degrees of freedom. The particular control scheme allows for indepdent control of up/down (z-axis), forward/backwards (xy plane position), and yaw (xy plane direction).
 
-  - Travel due to accelerations in the x-y plane is assumed to be due to a
-    single force like a motor, in a direction based on the yaw angle. This force would
-    result in an acceleration (based on the inertial mass of the system), along with
-    any external forces. Based on the yaw angle, this value is decomposed in the respective
+  - Travel due to accelerations in the x-y plane is assumed to be due to a single force like a motor, in a direction based on the yaw angle. This force would result in an acceleration (based on the inertial mass of the system), along with any external forces. Based on the yaw angle, this value is decomposed in the respective
     x and y direction accelerations, and then is numerically integrated to provide
     velocity and position values along their respective axes based on a given time-step.
 
@@ -28,9 +21,11 @@ and yaw (xy plane direction).
     travel in the x-y plane).
 
 #### Control System
+
+The control system for this is implemented in two primary places: the `controls_lib` module and in the `go_to()` function written in the `physics_lib` module (this is because `go_to()` is written as a function on the `Object` struct, which is located in `physics_lib`). Although the simulation is capable of implementing changes in all six degrees of freedom (x,y,z,roll,pitch,yaw), this control scheme assumes keeping roll and pitch stable, and only manipulates actuation in x,y,z and yaw. 
+
 The control system is obviously subject to change, and it likely going to be one of the greatest
-areas of development moving forward. As of this writing (2018-06-22), control are implemented in
-the following way:
+areas of development moving forward. The default control scheme currently operates as follows:
 
   1. From the current position and desired position, get the required yaw values
 

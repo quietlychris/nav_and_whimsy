@@ -5,13 +5,8 @@ mod controls_lib;
 mod physics_lib;
 mod tests;
 
-use crate::controls_lib::ControlParams;
-use crate::controls_lib::DoF;
-use crate::controls_lib::Point;
-use crate::controls_lib::State;
-use crate::controls_lib::SMD;
-use crate::physics_lib::Environment;
-use crate::physics_lib::Object;
+use crate::controls_lib::{ControlParams, Point, SMD};
+use crate::physics_lib::{DoF, Environment, Object, State};
 
 use std::f32;
 //for writing to log file
@@ -19,19 +14,13 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 
 pub const DT: f32 = 0.01;
-pub const PI: f32 = 3.14159;
 
 fn main() {
+    // Creates log file and writes in the header for a csv file
     let f = File::create("run_log.csv").expect("Unable to create file");
     let mut f = BufWriter::new(f);
-    //let path = Path::new("waypoints.csv");
-    //let mut writer = Writer::from_file(&path);
-
-    {
-        // Writes headers to position file
-        f.write_all(b"time,xaxis.var,xaxis.vard,xaxis.vardd,yaxis.var,yaxis.vard,yaxis.vardd,zaxis.var,zaxis.vard,zaxis.vardd,yaw.var,yaw.vard,yaw.vardd\n")
-            .expect("couldn't write headers to file");
-    }
+    f.write_all(b"time,xaxis.var,xaxis.vard,xaxis.vardd,yaxis.var,yaxis.vard,yaxis.vardd,zaxis.var,zaxis.vard,zaxis.vardd,yaw.var,yaw.vard,yaw.vardd\n")
+        .expect("couldn't write headers to file");
 
     // Creates an array of points to be searched
     let mut mesh: Vec<Point> = Vec::new();
@@ -50,6 +39,7 @@ fn main() {
     mesh.push(Point::new(0.0, 0.0, 0.0, false));
     */
 
+    // Creates a csv file with all the waypoints in it, for post-processing
     let g = File::create("waypoints.csv").expect("Unable to create file");
     let mut g = BufWriter::new(g);
     for a in 0..mesh.len() {
@@ -60,28 +50,29 @@ fn main() {
             mesh[a].y.to_string(),
             mesh[a].z.to_string()
         );
-        println!("{}", xyz_pos);
-        g.write_all(xyz_pos.as_bytes()).expect("Couldn't write formatted waypoint data to file");
+        // println!("{}", xyz_pos);
+        g.write_all(xyz_pos.as_bytes())
+            .expect("Couldn't write formatted waypoint data to file");
     }
 
     // Creates the environment, a spherical object, and sets the intial position to the origin
     let environment = Environment::new(false);
-    let sphere_radius: f32 = 0.1;
-    let sphere_mass: f32 = 1.0;
-    let sphere_surface: f32 = 4.0 * PI * (sphere_radius.powf(2.0));
 
     // Creates basis for controls laws for specified Object, as well has sets control limits for various physical constraints
     // Builds ControlParams struct before the Object struct so it can be included
     let control_params = ControlParams {
         position_smd: SMD::new(1.0, 0.3, 0.90),
         yaw_smd: SMD::new(0.1, 0.3, 0.7),
-        z_smd: SMD::new(1.0, 0.3, 0.5),
+        z_smd: SMD::new(0.8, 0.3, 0.5),
         yaw_allowance: 0.2,
         yaw_speed_allowance: 3.0,
         max_speed: 0.5,
         zero_speed_allowance: 0.01,
     };
 
+    let sphere_radius: f32 = 0.1;
+    let sphere_mass: f32 = 1.0;
+    let sphere_surface: f32 = 4.0 * std::f32::consts::PI * (sphere_radius.powf(2.0));
     let mut sphere = Object::new(
         sphere_mass,
         sphere_surface,
@@ -99,6 +90,8 @@ fn main() {
             DoF::new(mesh[counter_1].x, 0.0, 0.0),
             DoF::new(mesh[counter_1].y, 0.0, 0.0),
             DoF::new(mesh[counter_1].z, 0.0, 0.0),
+            DoF::new(0.0, 0.0, 0.0),
+            DoF::new(0.0, 0.0, 0.0),
             DoF::new(0.0, 0.0, 0.0),
         );
 
@@ -122,7 +115,8 @@ fn main() {
                     sphere.state.yaw.vard.to_string(),
                     sphere.state.yaw.vardd.to_string()
                 );
-                f.write_all(data_string.as_bytes()).expect("Could write data string with Object State data to file");
+                f.write_all(data_string.as_bytes())
+                    .expect("Could write data string with Object State data to file");
             }
 
             let min_distance: f32 = 0.1;
