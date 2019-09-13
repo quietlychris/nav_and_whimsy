@@ -1,10 +1,8 @@
 #![allow(dead_code)]
-extern crate ansi_term;
-extern crate rand;
 
 use crate::physics_lib::{DoF, State};
 use crate::DT;
-use std::f32;
+use core::f32;
 
 #[derive(Clone, Copy)]
 pub struct ControlParams {
@@ -302,17 +300,6 @@ impl DoF {
         self.vard = self.vard + self.vardd * DT;
         self.var = self.var + self.vard * DT;
     }
-}
-
-pub fn random_num() -> f32 {
-    // Defines a random variable in the range [-1:1] in the form
-    // f32. Can be used to define a variable.
-    let value = rand::random::<f32>();
-    let boolrand: bool = rand::random();
-    let condition: f32 = if boolrand == true { 1.0 } else { -1.0 };
-    let u = value * condition as f32;
-    //let y = u as f32;
-    u
 }
 
 // find_error(desired, current)

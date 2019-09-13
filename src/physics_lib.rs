@@ -1,10 +1,9 @@
 #![allow(dead_code)]
 
 use crate::DT;
-use std::f32;
+use core::f32;
 
 use crate::controls_lib::ControlParams;
-use crate::controls_lib::*;
 
 #[derive(Clone, Copy)]
 pub struct DoF {

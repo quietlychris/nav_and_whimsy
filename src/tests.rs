@@ -5,7 +5,7 @@ mod tests {
     // Running with '$ cargo test -- --nocapture' will send command-line output even if test passes
 
     use crate::kinematics_lib::*;
-    use std::f32;
+    use core::f32;
     use std::fs::File;
     use std::io::{BufWriter, Write};
     use DT;

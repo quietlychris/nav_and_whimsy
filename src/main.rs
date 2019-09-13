@@ -8,7 +8,7 @@ mod tests;
 use crate::controls_lib::{ControlParams, Point, SMD};
 use crate::physics_lib::{DoF, Environment, Object, State};
 
-use std::f32;
+use core::f32;
 //for writing to log file
 use std::fs::File;
 use std::io::{BufWriter, Write};
@@ -28,7 +28,7 @@ fn main() {
     for z in -1isize..2isize {
         for y in -3isize..4isize {
             for x in -3isize..4isize {
-                let mut point = Point::new(x as f32, y as f32, z as f32, false);
+                let point = Point::new(x as f32, y as f32, z as f32, false);
                 mesh.push(point);
             }
         }

@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use std::f32;
+use core::f32;
 
 use crate::controls_lib::*;
 
